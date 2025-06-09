@@ -17,7 +17,7 @@ TOKEN = os.getenv("AGENT_BOT_TOKEN")
 if not TOKEN:
     raise EnvironmentError("❌ Переменная окружения AGENT_BOT_TOKEN не найдена")
 if not WEBHOOK_URL:
-    raise EnvironmentError("❌ Переменная AGENT_WEBHOOK_URL не задана")
+    raise EnvironmentError("❌ Переменная WEBHOOK_URL не задана")
 
 # === Инициализация бота ===
 bot = Bot(
