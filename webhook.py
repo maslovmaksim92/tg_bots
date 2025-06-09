@@ -1,5 +1,5 @@
 import os
-from aiogram import Bot, Dispatcher, Router, types
+from aiogram import Bot, Dispatcher, types
 from aiogram.enums import ParseMode
 from aiogram.client.default import DefaultBotProperties
 from aiogram.fsm.storage.memory import MemoryStorage
@@ -19,19 +19,16 @@ if not TOKEN:
 if not WEBHOOK_URL:
     raise EnvironmentError("❌ Переменная WEBHOOK_URL не задана")
 
-# === Инициализация бота и диспетчера ===
+# === Инициализация бота ===
 bot = Bot(
     token=TOKEN,
     default=DefaultBotProperties(parse_mode=ParseMode.MARKDOWN)
 )
-
-
-
 dp = Dispatcher(storage=MemoryStorage())
 dp.include_router(main_router)
 dp.include_router(form_router)
 
-# === FastAPI router для webhook ===
+# === FastAPI роутер ===
 api_router = APIRouter()
 
 @api_router.post(WEBHOOK_PATH)
@@ -39,14 +36,13 @@ async def telegram_webhook(request: Request):
     try:
         payload = await request.json()
         update = types.Update.model_validate(payload)
-        logger.info(f"📩 Получено обновление от Telegram: {payload.get('message', {}).get('text', 'нет текста')}")
+        logger.info(f"📩 Обновление от Telegram: {payload.get('message', {}).get('text', 'нет текста')}")
         await dp.feed_update(bot, update)
         return {"ok": True}
     except Exception as e:
         logger.error(f"❌ Ошибка в webhook обработке: {e}")
         return {"ok": False, "error": str(e)}
 
-# === Установка webhook при запуске ===
 @dp.startup()
 async def on_startup():
     try:
