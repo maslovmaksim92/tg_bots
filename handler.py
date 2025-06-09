@@ -1,3 +1,4 @@
+import os
 from aiogram import Router, types, F, Bot
 from aiogram.types import (
     Message,
@@ -7,22 +8,29 @@ from aiogram.types import (
     InputMediaPhoto,
 )
 from aiogram.enums import ParseMode
+from aiogram.client.default import DefaultBotProperties
 from loguru import logger
 from pathlib import Path
-import os
 
 from prompts import get_answer
 
-from aiogram.client.default import DefaultBotProperties
+# === Переменные окружения ===
+AGENT_BOT_TOKEN = os.getenv("AGENT_BOT_TOKEN")
+TG_CHAT_LEAD = os.getenv("TG_CHAT_LEAD")
+
+if not AGENT_BOT_TOKEN:
+    raise EnvironmentError("❌ Переменная AGENT_BOT_TOKEN не задана")
+
+if not TG_CHAT_LEAD:
+    raise EnvironmentError("❌ TG_CHAT_LEAD не задан")
 
 bot = Bot(
     token=AGENT_BOT_TOKEN,
     default=DefaultBotProperties(parse_mode=ParseMode.MARKDOWN)
 )
 
-
-bot = Bot(token=AGENT_BOT_TOKEN, parse_mode=ParseMode.MARKDOWN)
 router = Router()
+
 
 # === Клавиатура ===
 def get_main_keyboard():
