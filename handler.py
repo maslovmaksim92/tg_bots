@@ -18,36 +18,32 @@ from loguru import logger
 
 from prompts import get_answer
 
-# === Telegram Bot Setup ===
+# === ENV ===
 AGENT_BOT_TOKEN = os.getenv("AGENT_BOT_TOKEN")
 TG_CHAT_LEAD = os.getenv("TG_CHAT_LEAD")
 BASE_WEBHOOK = os.getenv("WEBHOOK_URL")
 
 if not AGENT_BOT_TOKEN:
-    raise EnvironmentError("❌ Переменная окружения AGENT_BOT_TOKEN не найдена")
-
+    raise EnvironmentError("❌ Переменная AGENT_BOT_TOKEN не найдена")
 if not TG_CHAT_LEAD:
-    raise EnvironmentError("❌ TG_CHAT_LEAD не задан")
-
+    raise EnvironmentError("❌ Переменная TG_CHAT_LEAD не найдена")
 if not BASE_WEBHOOK:
-    raise EnvironmentError("❌ WEBHOOK_URL не задан")
+    raise EnvironmentError("❌ Переменная WEBHOOK_URL не найдена")
 
 WEBHOOK_PATH = "/webhook"
 WEBHOOK_URL = BASE_WEBHOOK + WEBHOOK_PATH
 
-bot = Bot(
-    token=AGENT_BOT_TOKEN,
-    default=DefaultBotProperties(parse_mode=ParseMode.MARKDOWN)
-)
+# === Bot / Dispatcher ===
+bot = Bot(token=AGENT_BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.MARKDOWN))
 router = Router()
 dp = Dispatcher()
 dp.include_router(router)
 
-# === FastAPI App ===
+# === FastAPI ===
 app = FastAPI()
 
-# === Клавиатура ===
-def get_main_keyboard():
+# === UI ===
+def get_main_keyboard() -> ReplyKeyboardMarkup:
     return ReplyKeyboardMarkup(
         resize_keyboard=True,
         keyboard=[
@@ -57,8 +53,9 @@ def get_main_keyboard():
         ]
     )
 
-user_states = {}
+user_states: dict[int, dict] = {}
 
+# === Команды ===
 @router.message(F.text.lower() == "/start")
 async def start_handler(msg: Message):
     logger.info(f"▶️ /start от {msg.from_user.id}")
@@ -78,7 +75,8 @@ async def start_handler(msg: Message):
         reply_markup=get_main_keyboard()
     )
 
-@router.message(F.text == "📑 Получить КП")
+# === КП ===
+@router.message(F.text == "📁 Получить КП")
 async def send_presentation(msg: Message):
     try:
         logger.info(f"📑 Пользователь {msg.from_user.id} запросил КП")
@@ -96,15 +94,16 @@ async def send_presentation(msg: Message):
             await msg.answer("❌ Документы не найдены.")
             return
 
-        await msg.answer("📎 Отправляю все документы по объекту:")
+        await msg.answer("📎 Отправляю документы по объекту:")
         for doc in docs:
             caption = doc_titles.get(doc.name, f"📄 Документ: {doc.name}")
             await msg.answer_document(FSInputFile(doc), caption=caption)
 
     except Exception as e:
-        logger.error(f"Ошибка при отправке КП: {e}")
+        logger.exception("Ошибка при отправке КП")
         await msg.answer("⚠️ Не удалось отправить документы. Попробуйте позже.")
 
+# === Фото ===
 @router.message(F.text == "📷 Фото объекта")
 async def send_photos(msg: Message):
     try:
@@ -114,22 +113,24 @@ async def send_photos(msg: Message):
             await msg.answer("❌ Папка с фото не найдена.")
             return
 
-        photos = []
-        for fname in sorted(os.listdir(folder)):
-            if fname.lower().endswith((".jpg", ".jpeg", ".png")):
-                photos.append(InputMediaPhoto(media=FSInputFile(os.path.join(folder, fname))))
+        photos = [
+            InputMediaPhoto(FSInputFile(os.path.join(folder, fname)))
+            for fname in sorted(os.listdir(folder))
+            if fname.lower().endswith((".jpg", ".jpeg", ".png"))
+        ]
 
         if not photos:
             await msg.answer("📂 Фото не найдены.")
             return
 
         for i in range(0, len(photos), 10):
-            await msg.answer_media_group(photos[i:i+10])
+            await msg.answer_media_group(photos[i:i + 10])
 
     except Exception as e:
-        logger.error(f"Ошибка при отправке фото: {e}")
-        await msg.answer("⚠️ Ошибка при отправке фото.")
+        logger.exception("Ошибка при отправке фото")
+        await msg.answer("⚠️ Произошла ошибка при отправке фото.")
 
+# === Заявка ===
 @router.message(F.text == "📝 Оставить заявку")
 async def start_application(msg: Message):
     logger.info(f"📝 Пользователь {msg.from_user.id} начал заявку")
@@ -143,12 +144,22 @@ async def process_form_or_question(msg: Message):
 
     if state:
         if state["step"] == "name":
-            state["name"] = msg.text.strip()
+            name = msg.text.strip()
+            if not name:
+                await msg.answer("⚠️ Пожалуйста, введите корректное имя.")
+                return
+            state["name"] = name
             state["step"] = "phone"
             await msg.answer("📞 Введите ваш *номер телефона*:")
             return
+
         elif state["step"] == "phone":
-            state["phone"] = msg.text.strip()
+            phone = msg.text.strip()
+            if not phone or not phone.replace(" ", "").replace("-", "").isdigit():
+                await msg.answer("⚠️ Введите корректный номер.")
+                return
+            state["phone"] = phone
+
             text = (
                 f"📥 *Новая заявка!*\n\n"
                 f"👤 ФИО: {state['name']}\n"
@@ -156,40 +167,52 @@ async def process_form_or_question(msg: Message):
                 f"🆔 Telegram ID: {user_id}\n"
                 f"👤 Username: @{msg.from_user.username or 'нет'}"
             )
+
             try:
                 await bot.send_message(chat_id=TG_CHAT_LEAD, text=text)
             except Exception as e:
-                logger.error(f"Ошибка при отправке заявки: {e}")
-            await msg.answer("✅ Спасибо! Заявка принята. Мы с вами свяжемся.")
+                logger.exception("Ошибка отправки заявки")
+
+            await msg.answer("✅ Спасибо! Заявка принята.")
             user_states.pop(user_id, None)
             return
 
-    # Вопрос — GPT-ответ
+    # === GPT-вопрос ===
     if msg.text:
-        logger.info(f"🧠 Вопрос от {msg.from_user.id}: {msg.text}")
         try:
+            logger.info(f"🧠 Вопрос от {user_id}: {msg.text}")
             answer = await get_answer(msg.text, user_id=user_id)
             await msg.answer(answer)
         except Exception as e:
-            logger.error(f"Ошибка GPT: {e}")
+            logger.exception("Ошибка при генерации ответа GPT")
             await msg.answer("🤖 Временно не могу ответить. Попробуйте позже.")
     else:
         await msg.answer("⚠️ Пожалуйста, введите текст.")
 
-# === Webhook FastAPI ===
+# === Webhook ===
 @app.post(WEBHOOK_PATH)
 async def telegram_webhook(req: Request):
-    data = await req.json()
-    update = Update.model_validate(data)
-    await dp.feed_update(bot, update)
-    return {"status": "ok"}
+    try:
+        data = await req.json()
+        update = Update.model_validate(data)
+        await dp.feed_update(bot, update)
+        return {"status": "ok"}
+    except Exception as e:
+        logger.exception("Ошибка в webhook обработке")
+        return {"status": "error", "detail": str(e)}
 
 @app.on_event("startup")
 async def on_startup():
-    await bot.set_webhook(WEBHOOK_URL)
-    logger.info(f"✅ Webhook установлен: {WEBHOOK_URL}")
+    try:
+        await bot.set_webhook(WEBHOOK_URL)
+        logger.info(f"✅ Webhook установлен: {WEBHOOK_URL}")
+    except Exception as e:
+        logger.exception("❌ Не удалось установить webhook")
 
 @app.on_event("shutdown")
 async def on_shutdown():
-    await bot.delete_webhook()
-    logger.info("🛑 Webhook удалён")
+    try:
+        await bot.delete_webhook()
+        logger.info("🛑 Webhook удалён")
+    except Exception as e:
+        logger.exception("❌ Ошибка при удалении webhook")
