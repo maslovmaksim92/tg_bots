@@ -10,12 +10,17 @@ from pathlib import Path
 from prompts import get_answer
 
 AGENT_BOT_TOKEN = os.getenv("AGENT_BOT_TOKEN")
-TG_CHAT_LEAD = int(os.getenv("TG_CHAT_LEAD"))
+TG_CHAT_LEAD = os.getenv("TG_CHAT_LEAD")
 
 if not AGENT_BOT_TOKEN:
     raise EnvironmentError("❌ AGENT_BOT_TOKEN не задан")
 if not TG_CHAT_LEAD:
     raise EnvironmentError("❌ TG_CHAT_LEAD не задан")
+
+try:
+    TG_CHAT_LEAD = int(TG_CHAT_LEAD)
+except ValueError:
+    raise ValueError("❌ TG_CHAT_LEAD должен быть целым числом (user_id или -100xxx...)")
 
 bot = Bot(token=AGENT_BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.MARKDOWN))
 router = Router()
@@ -102,7 +107,6 @@ async def send_photos(msg: Message):
         logger.error(f"Ошибка отправки фото: {e}")
         await msg.answer("⚠️ Ошибка при отправке фото.")
 
-
 @router.message(F.text == "📝 Оставить заявку")
 async def start_form(msg: Message):
     user_states[msg.from_user.id] = {"step": "name"}
@@ -122,11 +126,20 @@ async def handle_message(msg: Message):
         elif state["step"] == "phone":
             phone = msg.text.strip()
             state["phone"] = phone
-            await bot.send_message(TG_CHAT_LEAD, f"📥 Заявка\nФИО: {state['name']}\nТелефон: {phone}")
-            user_states.pop(user_id)
-            await msg.answer("✅ Спасибо! Заявка отправлена.")
+            try:
+                await bot.send_message(
+                    TG_CHAT_LEAD,
+                    f"📥 Новая заявка:\n\n👤 ФИО: {state['name']}\n📞 Телефон: {phone}"
+                )
+                await msg.answer("✅ Спасибо! Заявка отправлена.")
+            except Exception as e:
+                logger.error(f"❌ Ошибка при отправке заявки в TG_CHAT_LEAD: {e}")
+                await msg.answer("⚠️ Не удалось отправить заявку. Мы уже разбираемся.")
+            finally:
+                user_states.pop(user_id, None)
             return
 
+    # GPT-ответ
     try:
         answer = await get_answer(msg.text, user_id=user_id)
         await msg.answer(answer)
