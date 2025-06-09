@@ -34,13 +34,16 @@ api_router = APIRouter()
 @api_router.post(WEBHOOK_PATH)
 async def telegram_webhook(request: Request):
     try:
-        update = types.Update.model_validate(await request.json())
+        payload = await request.json()
+        update = types.Update.model_validate(payload)
+        logger.info(f"📩 Получено обновление от Telegram: {payload.get('message', {}).get('text', 'нет текста')}")
         await dp.feed_update(bot, update)
         return {"ok": True}
     except Exception as e:
         logger.error(f"❌ Ошибка в webhook обработке: {e}")
         return {"ok": False, "error": str(e)}
 
+# === Установка webhook при запуске ===
 @dp.startup()
 async def on_startup():
     try:
