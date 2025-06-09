@@ -1,4 +1,4 @@
-from aiogram import Router, types, F
+from aiogram import Router, types, F, Bot
 from aiogram.types import (
     Message,
     ReplyKeyboardMarkup,
@@ -6,12 +6,18 @@ from aiogram.types import (
     FSInputFile,
     InputMediaPhoto,
 )
+from aiogram.enums import ParseMode
 from loguru import logger
 from pathlib import Path
 import os
 
 from prompts import get_answer
 
+# === Импорт переменных окружения ===
+AGENT_BOT_TOKEN = os.getenv("AGENT_BOT_TOKEN")
+TG_CHAT_LEAD = os.getenv("TG_CHAT_LEAD")
+
+bot = Bot(token=AGENT_BOT_TOKEN, parse_mode=ParseMode.MARKDOWN)
 router = Router()
 
 # === Клавиатура ===
@@ -46,7 +52,7 @@ async def start_handler(msg: Message):
         reply_markup=get_main_keyboard()
     )
 
-@router.message(F.text == "📑 Получить КП")
+@router.message(F.text == "📁 Получить КП")
 async def send_presentation(msg: Message):
     try:
         logger.info(f"📑 Пользователь {msg.from_user.id} запросил КП")
@@ -98,6 +104,11 @@ async def send_photos(msg: Message):
         logger.error(f"Ошибка при отправке фото: {e}")
         await msg.answer("⚠️ Ошибка при отправке фото.")
 
+@router.message(F.text == "📝 Оставить заявку")
+async def start_application(msg: Message):
+    user_states[msg.from_user.id] = {"step": "name"}
+    await msg.answer("✍️ Введите ваше *ФИО*:")
+
 @router.message(F.text)
 async def process_form_or_question(msg: Message):
     user_id = msg.from_user.id
@@ -105,12 +116,22 @@ async def process_form_or_question(msg: Message):
 
     if state:
         if state["step"] == "name":
-            state["name"] = msg.text.strip()
+            name = msg.text.strip()
+            if not name:
+                await msg.answer("⚠️ Пожалуйста, введите ваше *ФИО* корректно.")
+                return
+            state["name"] = name
             state["step"] = "phone"
             await msg.answer("📞 Введите ваш *номер телефона*:")
             return
+
         elif state["step"] == "phone":
-            state["phone"] = msg.text.strip()
+            phone = msg.text.strip()
+            if not phone or not phone.replace(" ", "").replace("-", "").isdigit():
+                await msg.answer("⚠️ Номер должен содержать только цифры.")
+                return
+
+            state["phone"] = phone
             text = (
                 f"📥 *Новая заявка!*\n\n"
                 f"👤 ФИО: {state['name']}\n"
@@ -119,7 +140,6 @@ async def process_form_or_question(msg: Message):
                 f"👤 Username: @{msg.from_user.username or 'нет'}"
             )
             try:
-                from handler import TG_CHAT_LEAD, bot  # импорт здесь для избежания циклического импорта
                 await bot.send_message(chat_id=TG_CHAT_LEAD, text=text)
             except Exception as e:
                 logger.error(f"Ошибка при отправке заявки: {e}")
@@ -127,9 +147,9 @@ async def process_form_or_question(msg: Message):
             user_states.pop(user_id, None)
             return
 
-    # Вопрос — GPT-ответ
+    # GPT-ответ на произвольный текст
     if msg.text:
-        logger.info(f"🧠 Вопрос от {msg.from_user.id}: {msg.text}")
+        logger.info(f"🧠 Вопрос от {user_id}: {msg.text}")
         try:
             answer = await get_answer(msg.text, user_id=user_id)
             await msg.answer(answer)
