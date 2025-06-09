@@ -55,9 +55,9 @@ def get_main_keyboard() -> ReplyKeyboardMarkup:
 
 user_states: dict[int, dict] = {}
 
-# === Команды ===
+# === Команда /start ===
 @router.message(F.text.lower() == "/start")
-async def start_handler(msg: Message):
+async def start_handler(msg: Message) -> None:
     logger.info(f"▶️ /start от {msg.from_user.id}")
     await msg.answer(
         "👋 Добро пожаловать! Я — Telegram-ассистент по продаже уникального коммерческого объекта в Калуге.\n\n"
@@ -75,9 +75,9 @@ async def start_handler(msg: Message):
         reply_markup=get_main_keyboard()
     )
 
-# === КП ===
+# === Отправка документов ===
 @router.message(F.text == "📁 Получить КП")
-async def send_presentation(msg: Message):
+async def send_presentation(msg: Message) -> None:
     try:
         logger.info(f"📑 Пользователь {msg.from_user.id} запросил КП")
         docs = sorted(Path("agent_bot/templates").glob("*.pdf"))
@@ -105,7 +105,7 @@ async def send_presentation(msg: Message):
 
 # === Фото ===
 @router.message(F.text == "📷 Фото объекта")
-async def send_photos(msg: Message):
+async def send_photos(msg: Message) -> None:
     try:
         logger.info(f"📷 Пользователь {msg.from_user.id} запросил фото")
         folder = "agent_bot/images"
@@ -132,13 +132,13 @@ async def send_photos(msg: Message):
 
 # === Заявка ===
 @router.message(F.text == "📝 Оставить заявку")
-async def start_application(msg: Message):
+async def start_application(msg: Message) -> None:
     logger.info(f"📝 Пользователь {msg.from_user.id} начал заявку")
     user_states[msg.from_user.id] = {"step": "name"}
     await msg.answer("✍️ Введите ваше *ФИО*:")
 
 @router.message(F.text)
-async def process_form_or_question(msg: Message):
+async def process_form_or_question(msg: Message) -> None:
     user_id = msg.from_user.id
     state = user_states.get(user_id)
 
