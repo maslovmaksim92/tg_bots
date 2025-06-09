@@ -10,7 +10,7 @@ from pathlib import Path
 from prompts import get_answer
 
 AGENT_BOT_TOKEN = os.getenv("AGENT_BOT_TOKEN")
-TG_CHAT_LEAD = os.getenv("TG_CHAT_LEAD")
+TG_CHAT_LEAD = int(os.getenv("TG_CHAT_LEAD"))
 
 if not AGENT_BOT_TOKEN:
     raise EnvironmentError("❌ AGENT_BOT_TOKEN не задан")
