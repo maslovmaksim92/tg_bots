@@ -36,8 +36,6 @@ WEBHOOK_URL = BASE_WEBHOOK + WEBHOOK_PATH
 # === Bot / Dispatcher ===
 bot = Bot(token=AGENT_BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.MARKDOWN))
 router = Router()
-dp = Dispatcher()
-dp.include_router(router)
 
 # === FastAPI ===
 app = FastAPI()
