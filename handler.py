@@ -16,7 +16,7 @@ from aiogram.types.update import Update
 from fastapi import FastAPI, Request
 from loguru import logger
 
-from agent_bot.prompts import get_answer
+from prompts import get_answer
 
 # === Telegram Bot Setup ===
 AGENT_BOT_TOKEN = os.getenv("AGENT_BOT_TOKEN")
