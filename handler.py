@@ -13,9 +13,13 @@ import os
 
 from prompts import get_answer
 
-# === Импорт переменных окружения ===
-AGENT_BOT_TOKEN = os.getenv("AGENT_BOT_TOKEN")
-TG_CHAT_LEAD = os.getenv("TG_CHAT_LEAD")
+from aiogram.client.default import DefaultBotProperties
+
+bot = Bot(
+    token=AGENT_BOT_TOKEN,
+    default=DefaultBotProperties(parse_mode=ParseMode.MARKDOWN)
+)
+
 
 bot = Bot(token=AGENT_BOT_TOKEN, parse_mode=ParseMode.MARKDOWN)
 router = Router()
