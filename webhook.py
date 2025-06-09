@@ -21,9 +21,11 @@ if not WEBHOOK_URL:
 
 # === Инициализация бота и диспетчера ===
 bot = Bot(
-    token=AGENT_BOT_TOKEN,
+    token=TOKEN,
     default=DefaultBotProperties(parse_mode=ParseMode.MARKDOWN)
 )
+
+
 
 dp = Dispatcher(storage=MemoryStorage())
 dp.include_router(main_router)
