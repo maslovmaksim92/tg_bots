@@ -7,7 +7,8 @@ from aiogram.types import (
 )
 from loguru import logger
 from pathlib import Path
-from prompts import get_answer
+from prompts.core import get_answer
+
 
 AGENT_BOT_TOKEN = os.getenv("AGENT_BOT_TOKEN")
 TG_CHAT_LEAD = os.getenv("TG_CHAT_LEAD")
