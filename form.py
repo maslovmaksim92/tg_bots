@@ -34,8 +34,8 @@ async def start_form(msg: Message, state: FSMContext):
 @router.message(Form.name)
 async def form_name(msg: Message, state: FSMContext):
     name = msg.text.strip()
-    if not name:
-        await msg.answer("⚠️ Имя не может быть пустым. Введите снова.")
+    if not name or len(name) < 2:
+        await msg.answer("⚠️ Пожалуйста, введите ваше имя корректно.")
         return
     await state.update_data(name=name)
     await msg.answer("📞 Введите ваш номер телефона:")
@@ -45,7 +45,7 @@ async def form_name(msg: Message, state: FSMContext):
 async def form_phone(msg: Message, state: FSMContext):
     phone = msg.text.strip()
     if not phone or not phone.replace(" ", "").replace("-", "").isdigit():
-        await msg.answer("⚠️ Пожалуйста, введите корректный номер телефона.")
+        await msg.answer("⚠️ Пожалуйста, введите корректный номер телефона (только цифры).")
         return
     await state.update_data(phone=phone)
     await msg.answer("💬 Комментарий или вопрос (необязательно). Если ничего нет — напишите «-»")
@@ -53,7 +53,11 @@ async def form_phone(msg: Message, state: FSMContext):
 
 @router.message(Form.comment)
 async def form_comment(msg: Message, state: FSMContext):
-    await state.update_data(comment=msg.text.strip())
+    comment = msg.text.strip()
+    if comment == "-":
+        comment = "Без комментариев"
+
+    await state.update_data(comment=comment)
     data = await state.get_data()
 
     text = (
@@ -67,7 +71,7 @@ async def form_comment(msg: Message, state: FSMContext):
     try:
         await bot.send_message(ADMIN_CHAT_ID, text)
         logger.info(f"✅ Заявка отправлена от {msg.from_user.id}")
-        await msg.answer("✅ Спасибо! Ваша заявка отправлена.")
+        await msg.answer("✅ Спасибо! Ваша заявка отправлена агенту.")
     except Exception as e:
         logger.error(f"❌ Ошибка отправки заявки: {e}")
         await msg.answer("⚠️ Не удалось отправить заявку. Попробуйте позже.")
