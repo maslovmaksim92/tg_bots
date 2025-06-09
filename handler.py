@@ -1,4 +1,3 @@
-### handler.py
 import os
 from aiogram import Router, F, Bot
 from aiogram.enums import ParseMode
@@ -20,7 +19,6 @@ if not TG_CHAT_LEAD:
 
 bot = Bot(token=AGENT_BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.MARKDOWN))
 router = Router()
-
 user_states = {}
 
 def get_main_keyboard():
@@ -32,6 +30,27 @@ def get_main_keyboard():
             [KeyboardButton(text="📝 Оставить заявку")],
         ]
     )
+
+def get_document_caption(filename: str) -> str:
+    name = filename.lower()
+    base_caption = (
+        "ℹ️ Примечание: данный документ является частью комплекта документации, "
+        "связанной с объектом недвижимости по адресу: г. Калуга, пер. Сельский, д. 8А. "
+        "Подробнее — в отчёте №008/25 от 16.04.2025 и документации УФИЦ ООО \"Ваш Дом\".\n\n"
+    )
+
+    if "otchet" in name:
+        return f"📎 [Отчёт об оценке]\n\n{base_caption}"
+    elif "svod" in name:
+        return f"📎 [Свод правил проектирования СП 308]\n\n{base_caption}"
+    elif "plan" in name:
+        return f"📎 [Поэтажный план объекта]\n\n{base_caption}"
+    elif "egrn" in name:
+        return f"📎 [Выписка из ЕГРН]\n\n{base_caption}"
+    elif "resume" in name:
+        return f"📎 [Резюме объекта / Коммерческое предложение]\n\n{base_caption}"
+    else:
+        return f"📎 [Документ]\n\n{base_caption}"
 
 @router.message(F.text.lower() == "/start")
 async def start_handler(msg: Message):
@@ -53,7 +72,8 @@ async def send_presentation(msg: Message):
             return
         await msg.answer("📎 Отправляю документы:")
         for doc in files:
-            await msg.answer_document(FSInputFile(doc))
+            caption = get_document_caption(doc.name)
+            await msg.answer_document(FSInputFile(doc), caption=caption)
     except Exception as e:
         logger.error(f"Ошибка отправки КП: {e}")
         await msg.answer("⚠️ Не удалось отправить документы.")
@@ -100,7 +120,6 @@ async def handle_message(msg: Message):
             await msg.answer("✅ Спасибо! Заявка отправлена.")
             return
 
-    # GPT-ответ
     try:
         answer = await get_answer(msg.text, user_id=user_id)
         await msg.answer(answer)
