@@ -11,7 +11,7 @@ from form import router as form_router
 
 # === Проверка переменных окружения ===
 WEBHOOK_PATH = "/webhook/agent"
-WEBHOOK_URL = os.getenv("AGENT_WEBHOOK_URL")
+WEBHOOK_URL = os.getenv("WEBHOOK_URL")
 TOKEN = os.getenv("AGENT_BOT_TOKEN")
 
 if not TOKEN:
