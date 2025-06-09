@@ -6,8 +6,8 @@ from aiogram.fsm.storage.memory import MemoryStorage
 from fastapi import APIRouter, Request
 from loguru import logger
 
-from agent_bot.handler import router as main_router
-from agent_bot.form import router as form_router
+from handler import router as main_router
+from form import router as form_router
 
 # === Проверка переменных окружения ===
 WEBHOOK_PATH = "/webhook/agent"
