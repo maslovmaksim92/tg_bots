@@ -85,16 +85,23 @@ async def send_photos(msg: Message):
         if not os.path.exists(folder):
             await msg.answer("❌ Папка с фото не найдена.")
             return
-        media = [InputMediaPhoto(FSInputFile(os.path.join(folder, f))) for f in os.listdir(folder)
-                 if f.lower().endswith((".jpg", ".jpeg", ".png"))]
+
+        media = []
+        for f in os.listdir(folder):
+            if f.lower().endswith((".jpg", ".jpeg", ".png")):
+                photo = FSInputFile(os.path.join(folder, f))
+                media.append(InputMediaPhoto(media=photo))
+
         if not media:
             await msg.answer("📂 Фото не найдены.")
             return
+
         for i in range(0, len(media), 10):
             await msg.answer_media_group(media[i:i+10])
     except Exception as e:
         logger.error(f"Ошибка отправки фото: {e}")
         await msg.answer("⚠️ Ошибка при отправке фото.")
+
 
 @router.message(F.text == "📝 Оставить заявку")
 async def start_form(msg: Message):
