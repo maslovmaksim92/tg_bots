@@ -3,32 +3,30 @@ from aiogram import Bot, Dispatcher, Router, types
 from aiogram.enums import ParseMode
 from aiogram.client.default import DefaultBotProperties
 from aiogram.fsm.storage.memory import MemoryStorage
-from fastapi import APIRouter, Request
-from loguru import logger
+from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
 
+from fastapi import APIRouter, Request
 from handler import router as main_router
 from form import router as form_router
+from loguru import logger
 
 # === Проверка переменных окружения ===
-WEBHOOK_PATH = "/webhook/agent"
+WEBHOOK_PATH = "/webhook"
 WEBHOOK_URL = os.getenv("WEBHOOK_URL")
 TOKEN = os.getenv("AGENT_BOT_TOKEN")
 
 if not TOKEN:
-    raise EnvironmentError("❌ Переменная окружения AGENT_BOT_TOKEN не найдена")
+    raise EnvironmentError("❌ Переменная AGENT_BOT_TOKEN не найдена")
 if not WEBHOOK_URL:
     raise EnvironmentError("❌ Переменная WEBHOOK_URL не задана")
 
-# === Инициализация бота ===
-bot = Bot(
-    token=TOKEN,
-    default=DefaultBotProperties(parse_mode=ParseMode.MARKDOWN)
-)
+# === Настройка бота ===
+bot = Bot(token=TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.MARKDOWN))
 dp = Dispatcher(storage=MemoryStorage())
 dp.include_router(main_router)
 dp.include_router(form_router)
 
-# === FastAPI роутер ===
+# === FastAPI router ===
 api_router = APIRouter()
 
 @api_router.post(WEBHOOK_PATH)
@@ -44,7 +42,7 @@ async def telegram_webhook(request: Request):
 @dp.startup()
 async def on_startup():
     try:
-        await bot.set_webhook(url=WEBHOOK_URL, drop_pending_updates=True)
-        logger.info(f"✅ Webhook установлен: {WEBHOOK_URL}")
+        await bot.set_webhook(url=WEBHOOK_URL + WEBHOOK_PATH, drop_pending_updates=True)
+        logger.info(f"✅ Webhook установлен: {WEBHOOK_URL + WEBHOOK_PATH}")
     except Exception as e:
         logger.error(f"❌ Не удалось установить webhook: {e}")
