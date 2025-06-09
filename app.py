@@ -7,6 +7,10 @@ app = FastAPI()
 # Подключаем API webhook
 app.include_router(api_router)
 
+@app.get("/")
+async def root():
+    return {"status": "ok"}
+
 @app.on_event("startup")
 async def startup():
     logger.info("✅ FastAPI запущено и готово принимать webhook")
