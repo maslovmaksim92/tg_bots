@@ -1,66 +1,84 @@
 import os
-import re
 import random
 from datetime import datetime
 from openai import AsyncOpenAI
-from prompts.data import *
+from prompts.data import (
+    FAQ_AGENT, FAQ_INVESTOR, FILE_HINTS,
+    CTA_AGENT, CTA_INVESTOR,
+    FOLLOWUP_AGENT, FOLLOWUP_INVESTOR,
+    STYLE_PROMPT_AGENT, STYLE_PROMPT_INVESTOR
+)
 
 client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-def contains(text: str, patterns: list[str]) -> bool:
-    return any(re.search(re.escape(p), text) for p in patterns)
+AGENT_CUES = ["я агент", "у меня клиент", "работаю с инвестором", "брокер"]
+INVESTOR_CUES = ["ищу для себя", "хочу вложить", "смотрю для покупки"]
+
+SUMMARY = (
+    "📍 *Калуга, пер. Сельский, 8а*\n"
+    "🏢 Объект: гостиница, переоборудованная под исправительный центр (УФИЦ)\n"
+    "📐 Площадь: 1089,7 м² + 815 м² земли\n"
+    "📄 Арендатор: ООО «Ваш Дом». Помещение передано ФСИН по соглашению\n"
+    "🔒 Обременение будет снято до сделки\n"
+    "📊 Документы: КП, оценка, ЕГРН, СП 308, техплан\n"
+    "💰 Цена: 56 млн ₽ (обсуждается)"
+)
 
 def detect_persona(text: str) -> str:
-    if contains(text, ["я агент", "у меня клиент", "брокер", "работаю с инвестором"]):
+    text = text.lower()
+    if any(cue in text for cue in AGENT_CUES):
         return "agent"
-    if contains(text, ["хочу вложить", "ищу для себя", "покупаю", "смотрю для себя"]):
+    if any(cue in text for cue in INVESTOR_CUES):
         return "investor"
     return "neutral"
 
 async def get_answer(question: str, user_id: int = None) -> str:
-    q = question.lower()
-    persona = detect_persona(q)
+    q_lower = question.lower()
 
-    # 🔍 Поиск быстрого ответа
+    # Автоответы
+    for kw, answer in {**FAQ_AGENT, **FAQ_INVESTOR}.items():
+        if kw in q_lower:
+            return answer
+
+    # Персона
+    persona = detect_persona(q_lower)
+
     if persona == "agent":
-        for keyword, reply in FAQ_AGENT.items():
-            if keyword in q:
-                return reply
+        style = STYLE_PROMPT_AGENT
+        cta = random.choice(CTA_AGENT)
+        followup = random.choice(FOLLOWUP_AGENT)
     elif persona == "investor":
-        for keyword, reply in FAQ_INVESTOR.items():
-            if keyword in q:
-                return reply
-
-    if contains(q, ["просто смотрю", "не знаю", "пока нет", "интересуюсь"]):
-        return "🧐 Уточните, вы представляете клиента или просто изучаете рынок?"
-
-    style_prompt = STYLE_PROMPT_AGENT if persona == "agent" else STYLE_PROMPT_INVESTOR
-    cta = random.choice(CTA_AGENT if persona == "agent" else CTA_INVESTOR)
-    followup = random.choice(FOLLOWUP_AGENT if persona == "agent" else FOLLOWUP_INVESTOR)
+        style = STYLE_PROMPT_INVESTOR
+        cta = random.choice(CTA_INVESTOR)
+        followup = random.choice(FOLLOWUP_INVESTOR)
+    else:
+        # fallback
+        style = STYLE_PROMPT_AGENT + "\n\n" + STYLE_PROMPT_INVESTOR
+        cta = random.choice(CTA_AGENT + CTA_INVESTOR)
+        followup = random.choice(FOLLOWUP_AGENT + FOLLOWUP_INVESTOR)
 
     file_hint = ""
-    for keyword, hint in FILE_HINTS.items():
-        if keyword in q:
-            file_hint = f"\n📎 {hint}"
+    for key, msg in FILE_HINTS.items():
+        if key in q_lower:
+            file_hint = f"\n📎 {msg}"
             break
 
-    messages = [
-        {"role": "system", "content": style_prompt},
-        {"role": "user", "content": question}
-    ]
+    prompt = f"""{SUMMARY}\n\n{style}\n\nВопрос клиента: \"{question}\"\n\nОтвет:\n1. ✳️ Уникальный объект с гарантированной эксплуатацией\n2. 📄 {cta}{file_hint}\n3. ❓ {followup}"""
 
-    try:
-        if user_id:
+    # Логгируем вопрос
+    if user_id:
+        try:
             with open("logs/questions.log", "a", encoding="utf-8") as f:
                 f.write(f"[{datetime.now()}] {user_id}: {question}\n")
-    except:
-        pass
+        except Exception:
+            pass
 
+    # Запрос в OpenAI
     try:
         response = await client.chat.completions.create(
             model="gpt-4",
-            messages=messages
+            messages=[{"role": "user", "content": prompt}]
         )
-        return response.choices[0].message.content.strip() + f"\n\n{cta}{file_hint}\n\n{followup}"
+        return response.choices[0].message.content.strip()
     except Exception:
         return "📍 Объект функционирует. Документы готовы. Уточните, вы представляете клиента?"
