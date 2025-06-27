@@ -2,6 +2,7 @@ from fastapi import APIRouter, Request, Form
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from pathlib import Path
+from typing import Optional
 from .economics import calculate_personnel_economy
 from .ai_analysis import ai_analyze_unit_economy
 
@@ -22,6 +23,10 @@ def get_default_form():
         "nq_extra": True,
     }
 
+def checkbox_to_bool(val):
+    # Если чекбокс не отправлен — False, если value="true" — True
+    return str(val).lower() == "true"
+
 @router.get("/", response_class=HTMLResponse)
 async def unit_economy_form(request: Request):
     form = get_default_form()
@@ -34,12 +39,12 @@ async def unit_economy_result(
     q_price: float = Form(...),
     q_cost: float = Form(...),
     q_days: int = Form(...),
-    q_extra: bool = Form(False),
+    q_extra: Optional[str] = Form(None),
     nq_count: int = Form(...),
     nq_price: float = Form(...),
     nq_cost: float = Form(...),
     nq_days: int = Form(...),
-    nq_extra: bool = Form(False),
+    nq_extra: Optional[str] = Form(None),
     ai_analysis: str = Form("")
 ):
     kval = calculate_personnel_economy(
@@ -48,7 +53,7 @@ async def unit_economy_result(
         work_days=q_days,
         price_per_shift=q_price,
         cost_per_shift=q_cost,
-        extra_shift=q_extra,
+        extra_shift=checkbox_to_bool(q_extra),
         extra_shift_percent=0.5,
         extra_shift_cost_multiplier=1.5
     )
@@ -58,7 +63,7 @@ async def unit_economy_result(
         work_days=nq_days,
         price_per_shift=nq_price,
         cost_per_shift=nq_cost,
-        extra_shift=nq_extra,
+        extra_shift=checkbox_to_bool(nq_extra),
         extra_shift_percent=0.25,
         extra_shift_cost_multiplier=1.8
     )
@@ -76,12 +81,12 @@ async def unit_economy_result(
                 "q_price": q_price,
                 "q_cost": q_cost,
                 "q_days": q_days,
-                "q_extra": q_extra,
+                "q_extra": checkbox_to_bool(q_extra),
                 "nq_count": nq_count,
                 "nq_price": nq_price,
                 "nq_cost": nq_cost,
                 "nq_days": nq_days,
-                "nq_extra": nq_extra,
+                "nq_extra": checkbox_to_bool(nq_extra),
             },
             "kval": kval,
             "nekval": nekval,
@@ -97,12 +102,12 @@ async def ai_analyze(
     q_price: float = Form(...),
     q_cost: float = Form(...),
     q_days: int = Form(...),
-    q_extra: bool = Form(False),
+    q_extra: Optional[str] = Form(None),
     nq_count: int = Form(...),
     nq_price: float = Form(...),
     nq_cost: float = Form(...),
     nq_days: int = Form(...),
-    nq_extra: bool = Form(False)
+    nq_extra: Optional[str] = Form(None)
 ):
     kval = calculate_personnel_economy(
         personnel_type="Квалифицированный персонал (швеи)",
@@ -110,7 +115,7 @@ async def ai_analyze(
         work_days=q_days,
         price_per_shift=q_price,
         cost_per_shift=q_cost,
-        extra_shift=q_extra,
+        extra_shift=checkbox_to_bool(q_extra),
         extra_shift_percent=0.5,
         extra_shift_cost_multiplier=1.5
     )
@@ -120,7 +125,7 @@ async def ai_analyze(
         work_days=nq_days,
         price_per_shift=nq_price,
         cost_per_shift=nq_cost,
-        extra_shift=nq_extra,
+        extra_shift=checkbox_to_bool(nq_extra),
         extra_shift_percent=0.25,
         extra_shift_cost_multiplier=1.8
     )
@@ -134,13 +139,13 @@ async def ai_analyze(
         "q_price": q_price,
         "q_cost": q_cost,
         "q_days": q_days,
-        "q_extra": q_extra,
+        "q_extra": checkbox_to_bool(q_extra),
         "kval_profit": kval["operational_profit"],
         "nq_count": nq_count,
         "nq_price": nq_price,
         "nq_cost": nq_cost,
         "nq_days": nq_days,
-        "nq_extra": nq_extra,
+        "nq_extra": checkbox_to_bool(nq_extra),
         "nekval_profit": nekval["operational_profit"],
         "total_profit": summary["operational_profit"]
     }
@@ -154,12 +159,12 @@ async def ai_analyze(
                 "q_price": q_price,
                 "q_cost": q_cost,
                 "q_days": q_days,
-                "q_extra": q_extra,
+                "q_extra": checkbox_to_bool(q_extra),
                 "nq_count": nq_count,
                 "nq_price": nq_price,
                 "nq_cost": nq_cost,
                 "nq_days": nq_days,
-                "nq_extra": nq_extra,
+                "nq_extra": checkbox_to_bool(nq_extra),
             },
             "kval": kval,
             "nekval": nekval,
