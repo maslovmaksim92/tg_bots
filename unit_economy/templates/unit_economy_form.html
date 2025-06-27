@@ -40,8 +40,10 @@
                 <input type="number" name="q_days" required min="1" max="366" step="1" value="{{ form.q_days }}">
             </div>
             <div class="form-block">
+                <!-- Важно: value всегда, hidden всегда с value="false", checkbox с value="true" -->
+                <input type="hidden" name="q_extra" value="false">
                 <label>Учитывать доп. смены (50% сотрудников, +50% оплата):</label>
-                <input type="checkbox" name="q_extra" {% if form.q_extra %}checked{% endif %}>
+                <input type="checkbox" name="q_extra" value="true" {% if form.q_extra %}checked{% endif %}>
             </div>
         </div>
         <div class="section">
@@ -63,8 +65,9 @@
                 <input type="number" name="nq_days" required min="1" max="366" step="1" value="{{ form.nq_days }}">
             </div>
             <div class="form-block">
+                <input type="hidden" name="nq_extra" value="false">
                 <label>Учитывать доп. смены (25% сотрудников, +80% оплата):</label>
-                <input type="checkbox" name="nq_extra" {% if form.nq_extra %}checked{% endif %}>
+                <input type="checkbox" name="nq_extra" value="true" {% if form.nq_extra %}checked{% endif %}>
             </div>
         </div>
         <button type="submit">Рассчитать</button>
