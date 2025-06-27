@@ -5,57 +5,114 @@
     <title>Расчет юнит-экономики</title>
     <style>
         body { font-family: Arial, sans-serif; margin: 2rem; }
-        .form-block { margin-bottom: 1.5rem; }
-        label { display: inline-block; min-width: 180px; }
-        input[type=number], input[type=text] { width: 180px; padding: 4px; margin-right: 12px; }
-        button { padding: 6px 18px; }
-        .result-table { margin-top: 2rem; border-collapse: collapse; }
-        .result-table td, .result-table th { border: 1px solid #aaa; padding: 8px 14px; }
-        .result-table th { background: #f4f4f4; }
+        h2, h3 { margin-bottom: 0.5em; }
+        .form-block { margin-bottom: 1.2rem; }
+        label { display: inline-block; min-width: 230px; }
+        input[type=number], input[type=text] { width: 160px; padding: 4px; margin-right: 12px; }
+        button { padding: 7px 24px; margin-top: 8px; font-size: 1em; }
+        .section { border: 1px solid #c6e2f5; border-radius: 12px; background: #f4fafd; padding: 16px 28px 8px 18px; margin-bottom: 2em; }
+        .result-table { margin-top: 1.5rem; border-collapse: collapse; min-width: 510px; }
+        .result-table td, .result-table th { border: 1px solid #aaa; padding: 7px 13px; }
+        .result-table th { background: #e2eefc; }
+        .result-table tfoot th { background: #d1f9d1; }
+        .ai-block { border: 1px solid #81d08b; background: #f6fff6; border-radius: 10px; padding: 13px 18px; margin-top: 25px; font-size: 1.1em; }
     </style>
 </head>
 <body>
-    <h2>Расчет юнит-экономики (швейное производство)</h2>
+    <h2>Калькулятор юнит-экономики: <br>Квалифицированный и неквалифицированный персонал</h2>
     <form method="post">
-        <div class="form-block">
-            <label>Выручка 1 смены:</label>
-            <input type="number" step="0.01" name="revenue_per_shift" required value="{{ form.revenue_per_shift if form else '' }}">
+        <div class="section">
+            <h3>Квалифицированный персонал (швеи)</h3>
+            <div class="form-block">
+                <label>Количество сотрудников:</label>
+                <input type="number" name="q_count" required min="1" step="1" value="{{ form.q_count }}">
+            </div>
+            <div class="form-block">
+                <label>Цена 1 смены, ₽:</label>
+                <input type="number" name="q_price" required step="50" value="{{ form.q_price }}">
+            </div>
+            <div class="form-block">
+                <label>Себестоимость 1 смены, ₽:</label>
+                <input type="number" name="q_cost" required step="10" value="{{ form.q_cost }}">
+            </div>
+            <div class="form-block">
+                <label>Рабочих дней в году:</label>
+                <input type="number" name="q_days" required min="1" max="366" step="1" value="{{ form.q_days }}">
+            </div>
+            <div class="form-block">
+                <label>Учитывать доп. смены (50% сотрудников, +50% оплата):</label>
+                <input type="checkbox" name="q_extra" {% if form.q_extra %}checked{% endif %}>
+            </div>
         </div>
-        <div class="form-block">
-            <label>Себестоимость 1 смены:</label>
-            <input type="number" step="0.01" name="cost_per_shift" required value="{{ form.cost_per_shift if form else '' }}">
-        </div>
-        <div class="form-block">
-            <label>Количество швей:</label>
-            <input type="number" name="personnel_count" required value="{{ form.personnel_count if form else '' }}">
-        </div>
-        <div class="form-block">
-            <label>Рабочих дней в году:</label>
-            <input type="number" name="work_days" value="{{ form.work_days if form else 247 }}">
-        </div>
-        <div class="form-block">
-            <label>Учитывать доп. смены (50% по субботам):</label>
-            <input type="checkbox" name="extra_shift" {% if form and form.extra_shift %}checked{% endif %}>
+        <div class="section">
+            <h3>Неквалифицированный персонал</h3>
+            <div class="form-block">
+                <label>Количество сотрудников:</label>
+                <input type="number" name="nq_count" required min="1" step="1" value="{{ form.nq_count }}">
+            </div>
+            <div class="form-block">
+                <label>Цена 1 смены, ₽:</label>
+                <input type="number" name="nq_price" required step="50" value="{{ form.nq_price }}">
+            </div>
+            <div class="form-block">
+                <label>Себестоимость 1 смены, ₽:</label>
+                <input type="number" name="nq_cost" required step="10" value="{{ form.nq_cost }}">
+            </div>
+            <div class="form-block">
+                <label>Рабочих дней в году:</label>
+                <input type="number" name="nq_days" required min="1" max="366" step="1" value="{{ form.nq_days }}">
+            </div>
+            <div class="form-block">
+                <label>Учитывать доп. смены (25% сотрудников, +80% оплата):</label>
+                <input type="checkbox" name="nq_extra" {% if form.nq_extra %}checked{% endif %}>
+            </div>
         </div>
         <button type="submit">Рассчитать</button>
     </form>
 
-    {% if results %}
+    {% if kval and nekval %}
     <h3>Результаты расчёта</h3>
     <table class="result-table">
-        <tr><th>Показатель</th><th>Значение</th></tr>
-        <tr><td>Смен в год</td><td>{{ results.shifts_per_year }}</td></tr>
-        <tr><td>Доп. смен (50%)</td><td>{{ results.extra_shifts }}</td></tr>
-        <tr><td>Выручка основная</td><td>{{ results.main_revenue|round(2) }}</td></tr>
-        <tr><td>Себестоимость основная</td><td>{{ results.main_cost|round(2) }}</td></tr>
-        <tr><td>Опер. прибыль основная</td><td>{{ results.main_profit|round(2) }}</td></tr>
-        <tr><td>Выручка с доп. смен</td><td>{{ results.extra_revenue|round(2) }}</td></tr>
-        <tr><td>Себестоимость доп. смен</td><td>{{ results.extra_cost|round(2) }}</td></tr>
-        <tr><td>Опер. прибыль доп. смен</td><td>{{ results.extra_profit|round(2) }}</td></tr>
-        <tr><th>Итого выручка</th><th>{{ results.total_revenue|round(2) }}</th></tr>
-        <tr><th>Итого себестоимость</th><th>{{ results.total_cost|round(2) }}</th></tr>
-        <tr><th>Итого опер. прибыль</th><th>{{ results.operational_profit|round(2) }}</th></tr>
+        <tr>
+            <th></th>
+            <th>Квалифицированный персонал (швеи)</th>
+            <th>Неквалифицированный персонал</th>
+        </tr>
+        <tr><td>Смен в год</td><td>{{ kval.shifts_per_year }}</td><td>{{ nekval.shifts_per_year }}</td></tr>
+        <tr><td>Доп. смен в год</td><td>{{ kval.extra_shifts }}</td><td>{{ nekval.extra_shifts }}</td></tr>
+        <tr><td>Выручка основная</td><td>{{ kval.main_revenue|round(2) }}</td><td>{{ nekval.main_revenue|round(2) }}</td></tr>
+        <tr><td>Себестоимость основная</td><td>{{ kval.main_cost|round(2) }}</td><td>{{ nekval.main_cost|round(2) }}</td></tr>
+        <tr><td>Опер. прибыль основная</td><td>{{ kval.main_profit|round(2) }}</td><td>{{ nekval.main_profit|round(2) }}</td></tr>
+        <tr><td>Выручка с доп. смен</td><td>{{ kval.extra_revenue|round(2) }}</td><td>{{ nekval.extra_revenue|round(2) }}</td></tr>
+        <tr><td>Себестоимость доп. смен</td><td>{{ kval.extra_cost|round(2) }}</td><td>{{ nekval.extra_cost|round(2) }}</td></tr>
+        <tr><td>Опер. прибыль доп. смен</td><td>{{ kval.extra_profit|round(2) }}</td><td>{{ nekval.extra_profit|round(2) }}</td></tr>
+        <tfoot>
+        <tr><th>Итого выручка</th><th>{{ kval.total_revenue|round(2) }}</th><th>{{ nekval.total_revenue|round(2) }}</th></tr>
+        <tr><th>Итого себестоимость</th><th>{{ kval.total_cost|round(2) }}</th><th>{{ nekval.total_cost|round(2) }}</th></tr>
+        <tr><th>Итого опер. прибыль</th><th>{{ kval.operational_profit|round(2) }}</th><th>{{ nekval.operational_profit|round(2) }}</th></tr>
+        <tr><th colspan="2">Сумма по всем блокам</th><th>{{ summary.operational_profit|round(2) }}</th></tr>
+        </tfoot>
     </table>
+
+    <form method="post" action="/unit-economy/ai-analyze">
+        <input type="hidden" name="q_count" value="{{ form.q_count }}">
+        <input type="hidden" name="q_price" value="{{ form.q_price }}">
+        <input type="hidden" name="q_cost" value="{{ form.q_cost }}">
+        <input type="hidden" name="q_days" value="{{ form.q_days }}">
+        <input type="hidden" name="q_extra" value="{{ form.q_extra }}">
+        <input type="hidden" name="nq_count" value="{{ form.nq_count }}">
+        <input type="hidden" name="nq_price" value="{{ form.nq_price }}">
+        <input type="hidden" name="nq_cost" value="{{ form.nq_cost }}">
+        <input type="hidden" name="nq_days" value="{{ form.nq_days }}">
+        <input type="hidden" name="nq_extra" value="{{ form.nq_extra }}">
+        <button type="submit" style="background: #41c97d; color: #fff;">AI-анализ (GPT-4)</button>
+    </form>
+    {% endif %}
+
+    {% if ai_analysis %}
+    <div class="ai-block">
+        <b>AI-анализ:</b><br>{{ ai_analysis|safe }}
+    </div>
     {% endif %}
 </body>
 </html>
