@@ -39,7 +39,7 @@ ANALYSIS_PROMPT_TEMPLATE = """
 Итого прибыль: {nekval_profit}₽
 
 Суммарная прибыль: {total_profit}₽
-"
+"""
 
 def ai_analyze_unit_economy(params: dict) -> str:
     prompt = ANALYSIS_PROMPT_TEMPLATE.format(**params)
