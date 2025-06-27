@@ -2,36 +2,153 @@ from fastapi import APIRouter, Request, Form
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from pathlib import Path
-from .economics import calculate_unit_economy
+from .economics import calculate_personnel_economy
 
 router = APIRouter()
 templates = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
 
+def get_default_form():
+    return {
+        "q_count": 10,
+        "q_price": 3800,
+        "q_cost": 1924,
+        "q_days": 247,
+        "q_extra": True,
+        "nq_count": 40,
+        "nq_price": 2980,
+        "nq_cost": 1924,
+        "nq_days": 247,
+        "nq_extra": True,
+    }
+
 @router.get("/", response_class=HTMLResponse)
 async def unit_economy_form(request: Request):
-    return templates.TemplateResponse("unit_economy_form.html", {"request": request})
+    form = get_default_form()
+    return templates.TemplateResponse("unit_economy_form.html", {"request": request, "form": form})
 
 @router.post("/", response_class=HTMLResponse)
 async def unit_economy_result(
     request: Request,
-    revenue_per_shift: float = Form(...),
-    cost_per_shift: float = Form(...),
-    personnel_count: int = Form(...),
-    work_days: int = Form(247),
-    extra_shift: bool = Form(False)
+    q_count: int = Form(...),
+    q_price: float = Form(...),
+    q_cost: float = Form(...),
+    q_days: int = Form(...),
+    q_extra: bool = Form(False),
+    nq_count: int = Form(...),
+    nq_price: float = Form(...),
+    nq_cost: float = Form(...),
+    nq_days: int = Form(...),
+    nq_extra: bool = Form(False),
+    ai_analysis: str = Form("")
 ):
-    results = calculate_unit_economy(
-        revenue_per_shift=revenue_per_shift,
-        cost_per_shift=cost_per_shift,
-        personnel_count=personnel_count,
-        work_days=work_days,
-        extra_shift=extra_shift
+    kval = calculate_personnel_economy(
+        personnel_type="Квалифицированный персонал (швеи)",
+        personnel_count=q_count,
+        work_days=q_days,
+        price_per_shift=q_price,
+        cost_per_shift=q_cost,
+        extra_shift=q_extra,
+        extra_shift_percent=0.5,
+        extra_shift_cost_multiplier=1.5
     )
-    return templates.TemplateResponse("unit_economy_form.html", {"request": request, "results": results,
-                                                               "form": {
-                                                                   "revenue_per_shift": revenue_per_shift,
-                                                                   "cost_per_shift": cost_per_shift,
-                                                                   "personnel_count": personnel_count,
-                                                                   "work_days": work_days,
-                                                                   "extra_shift": extra_shift
-                                                               }})
+    nekval = calculate_personnel_economy(
+        personnel_type="Неквалифицированный персонал",
+        personnel_count=nq_count,
+        work_days=nq_days,
+        price_per_shift=nq_price,
+        cost_per_shift=nq_cost,
+        extra_shift=nq_extra,
+        extra_shift_percent=0.25,
+        extra_shift_cost_multiplier=1.8
+    )
+    summary = {
+        "total_revenue": kval["total_revenue"] + nekval["total_revenue"],
+        "total_cost": kval["total_cost"] + nekval["total_cost"],
+        "operational_profit": kval["operational_profit"] + nekval["operational_profit"]
+    }
+    return templates.TemplateResponse(
+        "unit_economy_form.html",
+        {
+            "request": request,
+            "form": {
+                "q_count": q_count,
+                "q_price": q_price,
+                "q_cost": q_cost,
+                "q_days": q_days,
+                "q_extra": q_extra,
+                "nq_count": nq_count,
+                "nq_price": nq_price,
+                "nq_cost": nq_cost,
+                "nq_days": nq_days,
+                "nq_extra": nq_extra,
+            },
+            "kval": kval,
+            "nekval": nekval,
+            "summary": summary,
+            "ai_analysis": ai_analysis
+        }
+    )
+
+@router.post("/ai-analyze", response_class=HTMLResponse)
+async def ai_analyze(
+    request: Request,
+    q_count: int = Form(...),
+    q_price: float = Form(...),
+    q_cost: float = Form(...),
+    q_days: int = Form(...),
+    q_extra: bool = Form(False),
+    nq_count: int = Form(...),
+    nq_price: float = Form(...),
+    nq_cost: float = Form(...),
+    nq_days: int = Form(...),
+    nq_extra: bool = Form(False)
+):
+    kval = calculate_personnel_economy(
+        personnel_type="Квалифицированный персонал (швеи)",
+        personnel_count=q_count,
+        work_days=q_days,
+        price_per_shift=q_price,
+        cost_per_shift=q_cost,
+        extra_shift=q_extra,
+        extra_shift_percent=0.5,
+        extra_shift_cost_multiplier=1.5
+    )
+    nekval = calculate_personnel_economy(
+        personnel_type="Неквалифицированный персонал",
+        personnel_count=nq_count,
+        work_days=nq_days,
+        price_per_shift=nq_price,
+        cost_per_shift=nq_cost,
+        extra_shift=nq_extra,
+        extra_shift_percent=0.25,
+        extra_shift_cost_multiplier=1.8
+    )
+    summary = {
+        "total_revenue": kval["total_revenue"] + nekval["total_revenue"],
+        "total_cost": kval["total_cost"] + nekval["total_cost"],
+        "operational_profit": kval["operational_profit"] + nekval["operational_profit"]
+    }
+    # AI-анализ пока заглушка (интеграция GPT-4 ниже)
+    ai_analysis = "AI-анализ: GPT-4 оценит перспективы и узкие места вашего бизнеса по текущим расчетам. (интеграция в следующем коммите)"
+    return templates.TemplateResponse(
+        "unit_economy_form.html",
+        {
+            "request": request,
+            "form": {
+                "q_count": q_count,
+                "q_price": q_price,
+                "q_cost": q_cost,
+                "q_days": q_days,
+                "q_extra": q_extra,
+                "nq_count": nq_count,
+                "nq_price": nq_price,
+                "nq_cost": nq_cost,
+                "nq_days": nq_days,
+                "nq_extra": nq_extra,
+            },
+            "kval": kval,
+            "nekval": nekval,
+            "summary": summary,
+            "ai_analysis": ai_analysis
+        }
+    )
