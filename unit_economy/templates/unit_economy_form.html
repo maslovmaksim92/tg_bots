@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Расчет юнит-экономики</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 2rem; }
+        .form-block { margin-bottom: 1.5rem; }
+        label { display: inline-block; min-width: 180px; }
+        input[type=number], input[type=text] { width: 180px; padding: 4px; margin-right: 12px; }
+        button { padding: 6px 18px; }
+        .result-table { margin-top: 2rem; border-collapse: collapse; }
+        .result-table td, .result-table th { border: 1px solid #aaa; padding: 8px 14px; }
+        .result-table th { background: #f4f4f4; }
+    </style>
+</head>
+<body>
+    <h2>Расчет юнит-экономики (швейное производство)</h2>
+    <form method="post">
+        <div class="form-block">
+            <label>Выручка 1 смены:</label>
+            <input type="number" step="0.01" name="revenue_per_shift" required value="{{ form.revenue_per_shift if form else '' }}">
+        </div>
+        <div class="form-block">
+            <label>Себестоимость 1 смены:</label>
+            <input type="number" step="0.01" name="cost_per_shift" required value="{{ form.cost_per_shift if form else '' }}">
+        </div>
+        <div class="form-block">
+            <label>Количество швей:</label>
+            <input type="number" name="personnel_count" required value="{{ form.personnel_count if form else '' }}">
+        </div>
+        <div class="form-block">
+            <label>Рабочих дней в году:</label>
+            <input type="number" name="work_days" value="{{ form.work_days if form else 247 }}">
+        </div>
+        <div class="form-block">
+            <label>Учитывать доп. смены (50% по субботам):</label>
+            <input type="checkbox" name="extra_shift" {% if form and form.extra_shift %}checked{% endif %}>
+        </div>
+        <button type="submit">Рассчитать</button>
+    </form>
+
+    {% if results %}
+    <h3>Результаты расчёта</h3>
+    <table class="result-table">
+        <tr><th>Показатель</th><th>Значение</th></tr>
+        <tr><td>Смен в год</td><td>{{ results.shifts_per_year }}</td></tr>
+        <tr><td>Доп. смен (50%)</td><td>{{ results.extra_shifts }}</td></tr>
+        <tr><td>Выручка основная</td><td>{{ results.main_revenue|round(2) }}</td></tr>
+        <tr><td>Себестоимость основная</td><td>{{ results.main_cost|round(2) }}</td></tr>
+        <tr><td>Опер. прибыль основная</td><td>{{ results.main_profit|round(2) }}</td></tr>
+        <tr><td>Выручка с доп. смен</td><td>{{ results.extra_revenue|round(2) }}</td></tr>
+        <tr><td>Себестоимость доп. смен</td><td>{{ results.extra_cost|round(2) }}</td></tr>
+        <tr><td>Опер. прибыль доп. смен</td><td>{{ results.extra_profit|round(2) }}</td></tr>
+        <tr><th>Итого выручка</th><th>{{ results.total_revenue|round(2) }}</th></tr>
+        <tr><th>Итого себестоимость</th><th>{{ results.total_cost|round(2) }}</th></tr>
+        <tr><th>Итого опер. прибыль</th><th>{{ results.operational_profit|round(2) }}</th></tr>
+    </table>
+    {% endif %}
+</body>
+</html>
