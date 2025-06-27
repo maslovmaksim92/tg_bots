@@ -10,6 +10,7 @@ router = APIRouter()
 templates = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
 
 def get_default_form():
+    """Базовые значения для формы"""
     return {
         "q_count": 10,
         "q_price": 3800,
@@ -23,12 +24,20 @@ def get_default_form():
         "nq_extra": True,
     }
 
-def checkbox_to_bool(val):
-    # Если чекбокс не отправлен — False, если value="true" — True
-    return str(val).lower() == "true"
+def checkbox_to_bool(val) -> bool:
+    """
+    Преобразует checkbox-значение из формы в bool.
+    Корректно работает для 'true', True, 'false', False, None.
+    """
+    if isinstance(val, bool):
+        return val
+    if val is None:
+        return False
+    return str(val).strip().lower() == "true"
 
 @router.get("/", response_class=HTMLResponse)
 async def unit_economy_form(request: Request):
+    """Отображение формы с дефолтными значениями"""
     form = get_default_form()
     return templates.TemplateResponse("unit_economy_form.html", {"request": request, "form": form})
 
@@ -39,14 +48,15 @@ async def unit_economy_result(
     q_price: float = Form(...),
     q_cost: float = Form(...),
     q_days: int = Form(...),
-    q_extra: Optional[str] = Form(None),
+    q_extra: Optional[str] = Form("false"),
     nq_count: int = Form(...),
     nq_price: float = Form(...),
     nq_cost: float = Form(...),
     nq_days: int = Form(...),
-    nq_extra: Optional[str] = Form(None),
+    nq_extra: Optional[str] = Form("false"),
     ai_analysis: str = Form("")
 ):
+    # Расчёт для квалифицированного и неквалифицированного персонала
     kval = calculate_personnel_economy(
         personnel_type="Квалифицированный персонал (швеи)",
         personnel_count=q_count,
@@ -102,13 +112,14 @@ async def ai_analyze(
     q_price: float = Form(...),
     q_cost: float = Form(...),
     q_days: int = Form(...),
-    q_extra: Optional[str] = Form(None),
+    q_extra: Optional[str] = Form("false"),
     nq_count: int = Form(...),
     nq_price: float = Form(...),
     nq_cost: float = Form(...),
     nq_days: int = Form(...),
-    nq_extra: Optional[str] = Form(None)
+    nq_extra: Optional[str] = Form("false")
 ):
+    # Аналогично расчёт + AI-анализ (GPT-4)
     kval = calculate_personnel_economy(
         personnel_type="Квалифицированный персонал (швеи)",
         personnel_count=q_count,
