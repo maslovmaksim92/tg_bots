@@ -3,14 +3,33 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from pathlib import Path
 from typing import Optional
+import re
 from .economics import calculate_personnel_economy
 from .ai_analysis import ai_analyze_unit_economy
 
 router = APIRouter()
 templates = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
 
+def format_ai_analysis(text: str) -> str:
+    """
+    Красивое форматирование SWOT/рекомендаций: жирные заголовки и списки.
+    """
+    if not text:
+        return ""
+    # Жирные **Заголовки:**
+    text = re.sub(r'\*\*(.+?)\*\*', r'<b>\1</b>', text)
+    # Списки — строки, начинающиеся с - или – (минус/длинное тире)
+    text = re.sub(r'(?:^|\n)[\-–] (.+)', r'<li>\1</li>', text)
+    # Обернуть <li> в <ul>
+    text = re.sub(r'((<li>.+?</li>)+)', r'<ul>\1</ul>', text, flags=re.DOTALL)
+    # Переводы строк -> <br>
+    text = re.sub(r'\n', r'<br>', text)
+    return text
+
+# Регистрируем фильтр для jinja2
+templates.env.filters['format_ai_analysis'] = format_ai_analysis
+
 def get_default_form():
-    """Базовые значения для формы"""
     return {
         "q_count": 10,
         "q_price": 3800,
@@ -25,10 +44,6 @@ def get_default_form():
     }
 
 def checkbox_to_bool(val) -> bool:
-    """
-    Преобразует checkbox-значение из формы в bool.
-    Корректно работает для 'true', True, 'false', False, None.
-    """
     if isinstance(val, bool):
         return val
     if val is None:
@@ -37,7 +52,6 @@ def checkbox_to_bool(val) -> bool:
 
 @router.get("/", response_class=HTMLResponse)
 async def unit_economy_form(request: Request):
-    """Отображение формы с дефолтными значениями"""
     form = get_default_form()
     return templates.TemplateResponse("unit_economy_form.html", {"request": request, "form": form})
 
@@ -53,10 +67,8 @@ async def unit_economy_result(
     nq_price: float = Form(...),
     nq_cost: float = Form(...),
     nq_days: int = Form(...),
-    nq_extra: Optional[str] = Form("false"),
-    ai_analysis: str = Form("")
+    nq_extra: Optional[str] = Form("false")
 ):
-    # Расчёт для квалифицированного и неквалифицированного персонала
     kval = calculate_personnel_economy(
         personnel_type="Квалифицированный персонал (швеи)",
         personnel_count=q_count,
@@ -82,6 +94,22 @@ async def unit_economy_result(
         "total_cost": kval["total_cost"] + nekval["total_cost"],
         "operational_profit": kval["operational_profit"] + nekval["operational_profit"]
     }
+    ai_params = {
+        "q_count": q_count,
+        "q_price": q_price,
+        "q_cost": q_cost,
+        "q_days": q_days,
+        "q_extra": checkbox_to_bool(q_extra),
+        "kval_profit": kval["operational_profit"],
+        "nq_count": nq_count,
+        "nq_price": nq_price,
+        "nq_cost": nq_cost,
+        "nq_days": nq_days,
+        "nq_extra": checkbox_to_bool(nq_extra),
+        "nekval_profit": nekval["operational_profit"],
+        "total_profit": summary["operational_profit"]
+    }
+    ai_analysis = ai_analyze_unit_economy(ai_params)
     return templates.TemplateResponse(
         "unit_economy_form.html",
         {
@@ -105,6 +133,7 @@ async def unit_economy_result(
         }
     )
 
+# Старый AI-анализ через отдельный endpoint — НЕ удалён (можно скрыть в UI)
 @router.post("/ai-analyze", response_class=HTMLResponse)
 async def ai_analyze(
     request: Request,
@@ -119,7 +148,6 @@ async def ai_analyze(
     nq_days: int = Form(...),
     nq_extra: Optional[str] = Form("false")
 ):
-    # Аналогично расчёт + AI-анализ (GPT-4)
     kval = calculate_personnel_economy(
         personnel_type="Квалифицированный персонал (швеи)",
         personnel_count=q_count,
