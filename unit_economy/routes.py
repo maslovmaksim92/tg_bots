@@ -3,6 +3,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from pathlib import Path
 from .economics import calculate_personnel_economy
+from .ai_analysis import ai_analyze_unit_economy
 
 router = APIRouter()
 templates = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
@@ -128,8 +129,22 @@ async def ai_analyze(
         "total_cost": kval["total_cost"] + nekval["total_cost"],
         "operational_profit": kval["operational_profit"] + nekval["operational_profit"]
     }
-    # AI-анализ пока заглушка (интеграция GPT-4 ниже)
-    ai_analysis = "AI-анализ: GPT-4 оценит перспективы и узкие места вашего бизнеса по текущим расчетам. (интеграция в следующем коммите)"
+    ai_params = {
+        "q_count": q_count,
+        "q_price": q_price,
+        "q_cost": q_cost,
+        "q_days": q_days,
+        "q_extra": q_extra,
+        "kval_profit": kval["operational_profit"],
+        "nq_count": nq_count,
+        "nq_price": nq_price,
+        "nq_cost": nq_cost,
+        "nq_days": nq_days,
+        "nq_extra": nq_extra,
+        "nekval_profit": nekval["operational_profit"],
+        "total_profit": summary["operational_profit"]
+    }
+    ai_analysis = ai_analyze_unit_economy(ai_params)
     return templates.TemplateResponse(
         "unit_economy_form.html",
         {
