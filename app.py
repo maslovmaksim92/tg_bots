@@ -3,8 +3,9 @@ from webhook import api_router, bot, WEBHOOK_URL, WEBHOOK_PATH
 from loguru import logger
 from unit_economy.routes import router as unit_economy_router
 
-app.include_router(unit_economy_router, prefix="/unit-economy")
 app = FastAPI()
+
+app.include_router(unit_economy_router, prefix="/unit-economy")
 app.include_router(api_router)
 
 @app.get("/")
@@ -19,5 +20,4 @@ async def startup():
         logger.info(f"✅ Webhook установлен: {webhook_url}")
     except Exception as e:
         logger.error(f"❌ Ошибка установки webhook: {e}")
-
     logger.info("🚀 FastAPI запущено и готово принимать webhook")
