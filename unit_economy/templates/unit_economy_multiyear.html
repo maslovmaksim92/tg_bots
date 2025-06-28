@@ -94,7 +94,7 @@
     {% if ai_analysis %}
     <div class="ai-block">
         <b>AI-анализ динамики:</b><br>
-        {{ ai_analysis | safe }}
+        {{ ai_analysis | format_ai_analysis | safe }}
     </div>
     {% endif %}
 </body>
