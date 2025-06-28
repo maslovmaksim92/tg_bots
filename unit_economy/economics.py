@@ -46,3 +46,22 @@ def calculate_personnel_economy(
         "operational_profit": operational_profit + extra_operational_profit
     }
     return summary
+    
+def calculate_extra_shift_block(count, days, price, cost):
+    """
+    Расчёт блока дополнительных смен:
+    - count: количество сотрудников на доп. сменах
+    - days: рабочих дней доп. смен
+    - price: выручка с 1 доп. смены
+    - cost: себестоимость 1 доп. смены
+    """
+    shifts = count * days
+    revenue = shifts * price
+    cost_val = shifts * cost
+    profit = revenue - cost_val
+    return {
+        "shifts": shifts,
+        "revenue": revenue,
+        "cost": cost_val,
+        "profit": profit,
+    }
