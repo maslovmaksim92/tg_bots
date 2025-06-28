@@ -9,42 +9,23 @@ MAX_ATTEMPTS = 3
 DELAY_SECONDS = 2
 
 ANALYSIS_PROMPT_TEMPLATE = """
-Проанализируй результаты юнит-экономики (B2B-аутстаффинг, аренда персонала). Дай SWOT-анализ, рекомендации, укажи потенциальные риски и точки роста. Формат ответа:
-
-- Сильные стороны:
-- Слабые стороны:
-- Возможности:
-- Риски:
-- Конкретные рекомендации:
+Проанализируй юнит-экономику. Дай SWOT-анализ, рекомендации и выдели формулы.
 
 Данные для анализа:
+...
 
-Квалифицированный персонал (швеи):
-Количество сотрудников: {q_count}
-Цена смены: {q_price}₽
-Себестоимость смены: {q_cost}₽
-Рабочих дней: {q_days}
-Доп. смены: {q_extra}
-Итого прибыль: {kval_profit}₽
+Формулы и пояснения к каждому полю:
+{comments_block}
 
-Неквалифицированный персонал:
-Количество сотрудников: {nq_count}
-Цена смены: {nq_price}₽
-Себестоимость смены: {nq_cost}₽
-Рабочих дней: {nq_days}
-Доп. смены: {nq_extra}
-Итого прибыль: {nekval_profit}₽
-
-Суммарная прибыль: {total_profit}₽
+Используй пояснения, чтобы лучше раскрыть сильные и слабые стороны, а также предложить точки для оптимизации.
 """
 
-NEEDED_KEYS = [
-    "q_count", "q_price", "q_cost", "q_days", "q_extra", "kval_profit",
-    "nq_count", "nq_price", "nq_cost", "nq_days", "nq_extra", "nekval_profit",
-    "total_profit"
-]
+def ai_analyze_unit_economy(params: dict, comments: dict) -> str:
+    comments_block = "\n".join(f"{k}: {v}" for k, v in comments.items())
+    params = dict(params)
+    params["comments_block"] = comments_block
+    # ... далее как раньше
 
-def ai_analyze_unit_economy(params: dict) -> str:
     # Заполняем пропущенные поля дефолтами (иначе KeyError)
     safe = {}
     for k in NEEDED_KEYS:
