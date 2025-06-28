@@ -92,20 +92,35 @@ ANALYSIS_PROMPT_TEMPLATE_MULTIYEAR = """
 - Главные риски, точки роста, действия по повышению эффективности
 
 Исходные данные по годам (все значения округлены):
+
 {table}
 
-Суммарная выручка: {total_revenue} ₽\nСуммарная чистая прибыль: {total_net_profit} ₽
+Суммарная выручка: {total_revenue} ₽
+Суммарная чистая прибыль: {total_net_profit} ₽
 """
 
 def ai_analyze_unit_economy_multiyear(results: list, summary: dict) -> str:
-    table = "| Год | Выручка | Себестоимость | Опер. прибыль | Чистая прибыль | Доля инвестора |\n"
-    table += "|-----|---------|---------------|---------------|---------------|---------------|\n"
+    # Markdown-таблица для всех инвесторов!
+    table = (
+        "| Год | Выручка | Себестоимость | Опер. прибыль | Чистая прибыль | Инв. 1 (50%) | Инв. 2 (30%) | Инв. 3 (10%) | Инв. 4 (10%) |\n"
+        "|-----|---------|---------------|---------------|---------------|--------------|--------------|--------------|--------------|\n"
+    )
     for row in results:
-        table += f"| {row['year']} | {int(row['total_revenue'])} | {int(row['total_cost'])} | {int(row['operational_profit'])} | {int(row['net_profit'])} | {int(row['investor_share'])} |\n"
+        table += (
+            f"| {row['year']} "
+            f"| {int(row['total_revenue'])} "
+            f"| {int(row['total_cost'])} "
+            f"| {int(row['operational_profit'])} "
+            f"| {int(row['net_profit'])} "
+            f"| {int(row.get('investor1_share', 0))} "
+            f"| {int(row.get('investor2_share', 0))} "
+            f"| {int(row.get('investor3_share', 0))} "
+            f"| {int(row.get('investor4_share', 0))} |\n"
+        )
     prompt = ANALYSIS_PROMPT_TEMPLATE_MULTIYEAR.format(
         table=table,
-        total_revenue=int(summary["total_revenue"]),
-        total_net_profit=int(summary["total_net_profit"])
+        total_revenue=int(summary.get("total_revenue", 0)),
+        total_net_profit=int(summary.get("net_profit", 0))
     )
     last_error = None
     for attempt in range(1, MAX_ATTEMPTS + 1):
