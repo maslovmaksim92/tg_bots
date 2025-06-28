@@ -148,15 +148,13 @@ async def unit_economy_multiyear_result(request: Request):
     for metric, _ in HORIZON_METRICS:
         total_by_metric[metric] = sum(results_per_year[year][metric] for year in YEARS)
 
-    # AI-анализ динамики
-    ai_analysis = ai_analyze_unit_economy_multiyear(
-        [dict(year=year, **results_per_year[year]) for year in YEARS], total_by_metric
-    )
-    # Новый reasoning (объяснение, архитектурные шаги)
-    ai_reasoning = ai_analyze_unit_economy_multiyear(
-        [dict(year=year, **results_per_year[year]) for year in YEARS],
-        total_by_metric,
-        explain=True  # или другой prompt для reasoning
+# AI-анализ динамики (оставляем только один вызов!)
+ai_analysis = ai_analyze_unit_economy_multiyear(
+    [dict(year=year, **results_per_year[year]) for year in YEARS], total_by_metric
+)
+# Если нужен reasoning — сделай отдельную функцию или промпт!
+ai_reasoning = None  # Или вызови ai_analyze_unit_economy_multiyear() с другим prompt внутри новой функции
+
     )
 
     return templates.TemplateResponse(
