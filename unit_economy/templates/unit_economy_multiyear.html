@@ -5,14 +5,11 @@
     <title>Unit-экономика 2025–2030 (мультигодовой расчет)</title>
     <style>
         body { font-family: Arial, sans-serif; margin: 2rem; }
-        h2, h3 { margin-bottom: 0.5em; }
         table, th, td { border: 1px solid #ddd; border-collapse: collapse; padding: 4px 7px; }
         th { background: #f2f2f2; }
-        .comment { color: #666; font-size: 0.93em; }
-        input[type=number] { width: 110px; }
+        td small { color: #888; font-size: 0.9em; display: block; }
+        input[type=number] { width: 100px; }
         button { padding: 8px 26px; margin-top: 16px; font-size: 1.07em; background: #41c97d; color: #fff; border: none; border-radius: 7px;}
-        .result-table th { background: #e2eefc; }
-        .summary-block { background: #f3fff2; border: 1px solid #b5e6be; border-radius: 10px; margin: 16px 0 30px 0; padding: 14px 26px;}
         .ai-block { border: 1px solid #81d08b; background: #f6fff6; border-radius: 10px; padding: 13px 18px; margin-top: 25px; font-size: 1.1em; }
     </style>
 </head>
@@ -26,7 +23,25 @@
                     {% for field in form[2025].keys() %}
                         <th>
                             {{ field }}<br>
-                            <span class="comment">{{ COMMENTS.get(field, '') }}</span>
+                            <small>
+                                {%- if field == "q_count" %}Количество квалифицированного персонала (швеи) в году.
+                                {%- elif field == "q_days" %}Количество рабочих дней для швеи в году.
+                                {%- elif field == "q_price" %}Цена одной смены для швеи, руб.
+                                {%- elif field == "q_cost" %}Себестоимость смены для швеи, руб.
+                                {%- elif field == "q_extra_count" %}Кол-во сотрудников в доп. сменах (швеи)
+                                {%- elif field == "q_extra_days" %}Кол-во доп. смен (швеи)
+                                {%- elif field == "q_extra_price" %}Цена доп. смены (швеи)
+                                {%- elif field == "q_extra_cost" %}Себестоимость доп. смены (швеи)
+                                {%- elif field == "nq_count" %}Количество неквалифицированного персонала (уборщицы) в году.
+                                {%- elif field == "nq_days" %}Количество рабочих дней (уборщицы) в году.
+                                {%- elif field == "nq_price" %}Цена одной смены (уборщицы), руб.
+                                {%- elif field == "nq_cost" %}Себестоимость смены (уборщицы), руб.
+                                {%- elif field == "nq_extra_count" %}Кол-во сотрудников в доп. сменах (уборщицы)
+                                {%- elif field == "nq_extra_days" %}Кол-во доп. смен (уборщицы)
+                                {%- elif field == "nq_extra_price" %}Цена доп. смены (уборщицы)
+                                {%- elif field == "nq_extra_cost" %}Себестоимость доп. смены (уборщицы)
+                                {% endif %}
+                            </small>
                         </th>
                     {% endfor %}
                 </tr>
@@ -47,47 +62,40 @@
         <button type="submit">Рассчитать</button>
     </form>
 
-    {% if results %}
-        <h3>Таблица итоговых результатов по годам</h3>
-        <table class="result-table">
+    {% if results_per_year %}
+        <h3>Итоговые показатели по годам</h3>
+        <table>
             <thead>
                 <tr>
-                    <th>Год</th>
-                    <th>Выручка</th>
-                    <th>Себестоимость</th>
-                    <th>Опер. прибыль</th>
-                    <th>Чистая прибыль</th>
-                    <th>Доля инвестора</th>
+                    <th>Показатель</th>
+                    {% for year in YEARS %}
+                        <th>{{ year }}</th>
+                    {% endfor %}
+                    <th>Сумма за все годы</th>
                 </tr>
             </thead>
             <tbody>
-                {% for row in results %}
+                {% for metric, label in HORIZON_METRICS %}
                 <tr>
-                    <td>{{ row.year }}</td>
-                    <td>{{ row.total_revenue|round(0) }}</td>
-                    <td>{{ row.total_cost|round(0) }}</td>
-                    <td>{{ row.operational_profit|round(0) }}</td>
-                    <td>{{ row.net_profit|round(0) }}</td>
-                    <td>{{ row.investor_share|round(0) }}</td>
+                    <td>
+                        <b>{{ metric }}</b>
+                        <small>{{ label }}</small>
+                    </td>
+                    {% for year in YEARS %}
+                        <td>{{ results_per_year[year][metric]|round(2) }}</td>
+                    {% endfor %}
+                    <td>{{ total_by_metric[metric]|round(2) }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
-        <div class="summary-block">
-            <b>Сводка за 2025–2030:</b>
-            <ul>
-                <li>Суммарная выручка: {{ summary.total_revenue|round(0) }}</li>
-                <li>Суммарная себестоимость: {{ summary.total_cost|round(0) }}</li>
-                <li>Суммарная опер. прибыль: {{ summary.total_operational_profit|round(0) }}</li>
-                <li>Суммарная чистая прибыль: {{ summary.total_net_profit|round(0) }}</li>
-            </ul>
-        </div>
-        {% if ai_analysis %}
-            <div class="ai-block">
-                <b>AI-анализ динамики:</b><br>
-                {{ ai_analysis | safe }}
-            </div>
-        {% endif %}
+    {% endif %}
+
+    {% if ai_analysis %}
+    <div class="ai-block">
+        <b>AI-анализ динамики:</b><br>
+        {{ ai_analysis | safe }}
+    </div>
     {% endif %}
 </body>
 </html>
