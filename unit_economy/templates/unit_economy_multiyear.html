@@ -8,53 +8,58 @@
         table, th, td { border: 1px solid #ddd; border-collapse: collapse; padding: 4px 7px; }
         th { background: #f2f2f2; }
         td small { color: #888; font-size: 0.9em; display: block; }
-        input[type=number] { width: 100px; }
+        input[type=number] { width: 95px; }
         button { padding: 8px 26px; margin-top: 16px; font-size: 1.07em; background: #41c97d; color: #fff; border: none; border-radius: 7px;}
         .ai-block { border: 1px solid #81d08b; background: #f6fff6; border-radius: 10px; padding: 13px 18px; margin-top: 25px; font-size: 1.1em; }
+        .caption { font-size: 1.13em; font-weight: 500; margin-bottom: 0.7em; }
     </style>
 </head>
 <body>
     <h2>Unit-экономика 2025–2030 (мультигодовой расчет)</h2>
     <form method="post">
+        <div class="caption">Исходные данные по каждому году</div>
         <table>
             <thead>
                 <tr>
                     <th>Год</th>
-                    {% for field in form[2025].keys() %}
-                        <th>
-                            {{ field }}<br>
-                            <small>
-                                {%- if field == "q_count" %}Количество квалифицированного персонала (швеи) в году.
-                                {%- elif field == "q_days" %}Количество рабочих дней для швеи в году.
-                                {%- elif field == "q_price" %}Цена одной смены для швеи, руб.
-                                {%- elif field == "q_cost" %}Себестоимость смены для швеи, руб.
-                                {%- elif field == "q_extra_count" %}Кол-во сотрудников в доп. сменах (швеи)
-                                {%- elif field == "q_extra_days" %}Кол-во доп. смен (швеи)
-                                {%- elif field == "q_extra_price" %}Цена доп. смены (швеи)
-                                {%- elif field == "q_extra_cost" %}Себестоимость доп. смены (швеи)
-                                {%- elif field == "nq_count" %}Количество неквалифицированного персонала (уборщицы) в году.
-                                {%- elif field == "nq_days" %}Количество рабочих дней (уборщицы) в году.
-                                {%- elif field == "nq_price" %}Цена одной смены (уборщицы), руб.
-                                {%- elif field == "nq_cost" %}Себестоимость смены (уборщицы), руб.
-                                {%- elif field == "nq_extra_count" %}Кол-во сотрудников в доп. сменах (уборщицы)
-                                {%- elif field == "nq_extra_days" %}Кол-во доп. смен (уборщицы)
-                                {%- elif field == "nq_extra_price" %}Цена доп. смены (уборщицы)
-                                {%- elif field == "nq_extra_cost" %}Себестоимость доп. смены (уборщицы)
-                                {% endif %}
-                            </small>
-                        </th>
-                    {% endfor %}
+                    <th>Квал. сотрудники<br><small>Количество</small></th>
+                    <th>Дней (квал.)<br><small>Рабочих дней</small></th>
+                    <th>Цена смены (квал.), ₽<br><small>Доход за смену</small></th>
+                    <th>Себест. смены (квал.), ₽<br><small>Расход на смену</small></th>
+                    <th>Квал. на доп. сменах<br><small>Сотр. в доп. сменах</small></th>
+                    <th>Дней (доп. смена)<br><small>Рабочих дней</small></th>
+                    <th>Цена доп. смены (квал.), ₽<br><small>Доход за смену</small></th>
+                    <th>Себест. доп. смены (квал.), ₽<br><small>Расход на смену</small></th>
+                    <th>Неквал. сотрудники<br><small>Количество</small></th>
+                    <th>Дней (неквал.)<br><small>Рабочих дней</small></th>
+                    <th>Цена смены (неквал.), ₽<br><small>Доход за смену</small></th>
+                    <th>Себест. смены (неквал.), ₽<br><small>Расход на смену</small></th>
+                    <th>Неквал. на доп. сменах<br><small>Сотр. в доп. сменах</small></th>
+                    <th>Дней (доп. смена)<br><small>Рабочих дней</small></th>
+                    <th>Цена доп. смены (неквал.), ₽<br><small>Доход за смену</small></th>
+                    <th>Себест. доп. смены (неквал.), ₽<br><small>Расход на смену</small></th>
                 </tr>
             </thead>
             <tbody>
                 {% for year in YEARS %}
                 <tr>
                     <td><b>{{ year }}</b></td>
-                    {% for field in form[year].keys() %}
-                        <td>
-                            <input type="number" step="any" name="{{ year }}_{{ field }}" value="{{ form[year][field] }}">
-                        </td>
-                    {% endfor %}
+                    <td><input type="number" name="{{ year }}_q_count" value="{{ form[year]['q_count'] }}"></td>
+                    <td><input type="number" name="{{ year }}_q_days" value="{{ form[year]['q_days'] }}"></td>
+                    <td><input type="number" name="{{ year }}_q_price" value="{{ form[year]['q_price'] }}"></td>
+                    <td><input type="number" name="{{ year }}_q_cost" value="{{ form[year]['q_cost'] }}"></td>
+                    <td><input type="number" name="{{ year }}_q_extra_count" value="{{ form[year]['q_extra_count'] }}"></td>
+                    <td><input type="number" name="{{ year }}_q_extra_days" value="{{ form[year]['q_extra_days'] }}"></td>
+                    <td><input type="number" name="{{ year }}_q_extra_price" value="{{ form[year]['q_extra_price'] }}"></td>
+                    <td><input type="number" name="{{ year }}_q_extra_cost" value="{{ form[year]['q_extra_cost'] }}"></td>
+                    <td><input type="number" name="{{ year }}_nq_count" value="{{ form[year]['nq_count'] }}"></td>
+                    <td><input type="number" name="{{ year }}_nq_days" value="{{ form[year]['nq_days'] }}"></td>
+                    <td><input type="number" name="{{ year }}_nq_price" value="{{ form[year]['nq_price'] }}"></td>
+                    <td><input type="number" name="{{ year }}_nq_cost" value="{{ form[year]['nq_cost'] }}"></td>
+                    <td><input type="number" name="{{ year }}_nq_extra_count" value="{{ form[year]['nq_extra_count'] }}"></td>
+                    <td><input type="number" name="{{ year }}_nq_extra_days" value="{{ form[year]['nq_extra_days'] }}"></td>
+                    <td><input type="number" name="{{ year }}_nq_extra_price" value="{{ form[year]['nq_extra_price'] }}"></td>
+                    <td><input type="number" name="{{ year }}_nq_extra_cost" value="{{ form[year]['nq_extra_cost'] }}"></td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -78,8 +83,7 @@
                 {% for metric, label in HORIZON_METRICS %}
                 <tr>
                     <td>
-                        <b>{{ metric }}</b>
-                        <small>{{ label }}</small>
+                        <b>{{ label }}</b>
                     </td>
                     {% for year in YEARS %}
                         <td>{{ results_per_year[year][metric]|round(2) }}</td>
