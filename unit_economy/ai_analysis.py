@@ -8,59 +8,47 @@ logger = logging.getLogger("unit_economy.ai_analysis")
 MAX_ATTEMPTS = 3
 DELAY_SECONDS = 2
 
-ANALYSIS_PROMPT_TEMPLATE = """
-Проанализируй юнит-экономику. Дай SWOT-анализ, рекомендации и выдели формулы.
+ANALYSIS_PROMPT_TEMPLATE_MULTIYEAR = """
+Проанализируй динамику unit-экономики по годам 2025–2030. Формат ответа: SWOT-анализ, рекомендации, выводы на основе трендов за все годы. Укажи:
+- Ключевые изменения в выручке, прибыли, маржинальности по годам
+- Главные риски, точки роста, действия по повышению эффективности
 
-Данные для анализа:
-...
+Исходные данные по годам (все значения округлены):
+{table}
 
-Формулы и пояснения к каждому полю:
-{comments_block}
-
-Используй пояснения, чтобы лучше раскрыть сильные и слабые стороны, а также предложить точки для оптимизации.
+Суммарная выручка: {total_revenue} ₽\nСуммарная чистая прибыль: {total_net_profit} ₽
 """
 
-def ai_analyze_unit_economy(params: dict, comments: dict) -> str:
-    comments_block = "\n".join(f"{k}: {v}" for k, v in comments.items())
-    params = dict(params)
-    params["comments_block"] = comments_block
-    # ... далее как раньше
-
-    # Заполняем пропущенные поля дефолтами (иначе KeyError)
-    safe = {}
-    for k in NEEDED_KEYS:
-        safe[k] = params.get(k, 0 if 'profit' in k or 'count' in k or 'days' in k else "")
-    # Преобразуем доп.смены в строку если они сложные
-    if isinstance(safe["q_extra"], dict):
-        safe["q_extra"] = ", ".join(f"{kk}: {vv}" for kk, vv in safe["q_extra"].items())
-    if isinstance(safe["nq_extra"], dict):
-        safe["nq_extra"] = ", ".join(f"{kk}: {vv}" for kk, vv in safe["nq_extra"].items())
-    logger.debug(f"[AI-анализ] Итоговые параметры для prompt: {safe}")
-
-    try:
-        prompt = ANALYSIS_PROMPT_TEMPLATE.format(**safe)
-    except Exception as e:
-        logger.error(f"[AI-анализ] Ошибка генерации prompt: {e}")
-        return f"[AI-анализ] Форматирование prompt не удалось: {e}"
-    logger.info(f"[AI-анализ] Prompt: {prompt[:400]}...")  # для аудита
-
+def ai_analyze_unit_economy_multiyear(results: list, summary: dict) -> str:
+    """
+    AI-анализ динамики по годам (SWOT и рекомендации по трендам)
+    """
+    table = "| Год | Выручка | Себестоимость | Опер. прибыль | Чистая прибыль | Доля инвестора |\n"
+    table += "|-----|---------|---------------|---------------|---------------|---------------|\n"
+    for row in results:
+        table += f"| {row['year']} | {int(row['total_revenue'])} | {int(row['total_cost'])} | {int(row['operational_profit'])} | {int(row['net_profit'])} | {int(row['investor_share'])} |\n"
+    prompt = ANALYSIS_PROMPT_TEMPLATE_MULTIYEAR.format(
+        table=table,
+        total_revenue=int(summary["total_revenue"]),
+        total_net_profit=int(summary["total_net_profit"])
+    )
     last_error = None
     for attempt in range(1, MAX_ATTEMPTS + 1):
         try:
-            logger.info(f"[AI-анализ] Попытка #{attempt}... Запрос к GPT-4")
+            logger.info(f"[AI-мультигод] Попытка #{attempt}... Запрос к GPT-4o")
             response = client.chat.completions.create(
                 model="gpt-4o",
                 messages=[{"role": "user", "content": prompt}],
                 temperature=0.3,
-                max_tokens=700
+                max_tokens=900
             )
             answer = response.choices[0].message.content.strip()
-            logger.info("[AI-анализ] Ответ GPT-4 получен")
+            logger.info("[AI-мультигод] Ответ GPT-4 получен")
             return answer
         except OpenAIError as e:
-            logger.error(f"[AI-анализ] Ошибка GPT-4: {e}")
+            logger.error(f"[AI-мультигод] Ошибка GPT-4: {e}")
             last_error = e
             if attempt < MAX_ATTEMPTS:
-                logger.info(f"[AI-анализ] Ретрай через {DELAY_SECONDS * attempt} секунд...")
+                logger.info(f"[AI-мультигод] Ретрай через {DELAY_SECONDS} секунд...")
                 time.sleep(DELAY_SECONDS * attempt)
-    return f"[AI-анализ] Не удалось получить ответ от GPT-4: {last_error}"
+    return f"[AI-мультигод] Не удалось получить ответ от GPT-4: {last_error}"  
