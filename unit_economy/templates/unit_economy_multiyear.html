@@ -141,3 +141,37 @@
     <br>
     <button type="submit" style="padding: 6px 24px; font-size: 1.2em;">Рассчитать</button>
 </form>
+{% if results_per_year %}
+    <h3>Результаты расчёта по годам</h3>
+    <table border="1" style="border-collapse: collapse; width: 100%; min-width: 1200px">
+        <tr>
+            <th>Год</th>
+            {% for metric, name in HORIZON_METRICS %}
+                <th>{{ name }}</th>
+            {% endfor %}
+        </tr>
+        {% for year in YEARS %}
+        <tr>
+            <td>{{ year }}</td>
+            {% for metric, name in HORIZON_METRICS %}
+                <td>{{ results_per_year[year][metric]|int }}</td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+        <tr style="font-weight: bold;">
+            <td>Сумма</td>
+            {% for metric, name in HORIZON_METRICS %}
+                <td>{{ total_by_metric[metric]|int }}</td>
+            {% endfor %}
+        </tr>
+    </table>
+{% endif %}
+
+{% if ai_analysis %}
+    <div style="margin-top:24px;">
+        <h3>SWOT/AI-анализ:</h3>
+        <div style="background:#faf7e5; padding:18px; border-radius:10px;">
+            {{ ai_analysis | safe }}
+        </div>
+    </div>
+{% endif %}
