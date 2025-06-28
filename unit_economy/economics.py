@@ -1,4 +1,18 @@
-from typing import Dict
+from typing import List, Dict, Any, Optional
+
+COMMENTS = {
+    "shifts_per_year": "Смен в год: Количество сотрудников × рабочих дней.",
+    "main_revenue": "Выручка основная: Смен в год × цена смены.",
+    "main_cost": "Себестоимость основная: Смен в год × себестоимость смены.",
+    "main_profit": "Опер. прибыль основная: Выручка основная – себестоимость основная.",
+    "extra_shifts": "Смен в доп. сменах: Кол-во сотрудников на доп. сменах × рабочих дней.",
+    "extra_revenue": "Выручка доп. смен: Смен в доп. сменах × цена доп. смены.",
+    "extra_cost": "Себестоимость доп. смен: Смен в доп. сменах × себестоимость доп. смены.",
+    "extra_profit": "Опер. прибыль доп. смен: Выручка доп. – себестоимость доп.",
+    "total_revenue": "Суммарная выручка: Выручка основная + Выручка доп. смен.",
+    "total_cost": "Суммарная себестоимость: Себестоимость основная + Себестоимость доп. смен.",
+    "operational_profit": "Суммарная опер. прибыль: Опер. прибыль основная + Опер. прибыль доп. смен.",
+}
 
 def calculate_personnel_economy(
     personnel_type: str,
@@ -46,7 +60,7 @@ def calculate_personnel_economy(
         "operational_profit": operational_profit + extra_operational_profit
     }
     return summary
-    
+
 def calculate_extra_shift_block(count, days, price, cost):
     """
     Расчёт блока дополнительных смен:
