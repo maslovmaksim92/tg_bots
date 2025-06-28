@@ -5,9 +5,6 @@ from openai import OpenAI, OpenAIError
 client = OpenAI()
 logger = logging.getLogger("unit_economy.ai_analysis")
 
-# Рекомендуется брать ключ из переменных окружения
-# Пример: client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-
 MAX_ATTEMPTS = 3
 DELAY_SECONDS = 2
 
@@ -41,8 +38,31 @@ ANALYSIS_PROMPT_TEMPLATE = """
 Суммарная прибыль: {total_profit}₽
 """
 
+NEEDED_KEYS = [
+    "q_count", "q_price", "q_cost", "q_days", "q_extra", "kval_profit",
+    "nq_count", "nq_price", "nq_cost", "nq_days", "nq_extra", "nekval_profit",
+    "total_profit"
+]
+
 def ai_analyze_unit_economy(params: dict) -> str:
-    prompt = ANALYSIS_PROMPT_TEMPLATE.format(**params)
+    # Заполняем пропущенные поля дефолтами (иначе KeyError)
+    safe = {}
+    for k in NEEDED_KEYS:
+        safe[k] = params.get(k, 0 if 'profit' in k or 'count' in k or 'days' in k else "")
+    # Преобразуем доп.смены в строку если они сложные
+    if isinstance(safe["q_extra"], dict):
+        safe["q_extra"] = ", ".join(f"{kk}: {vv}" for kk, vv in safe["q_extra"].items())
+    if isinstance(safe["nq_extra"], dict):
+        safe["nq_extra"] = ", ".join(f"{kk}: {vv}" for kk, vv in safe["nq_extra"].items())
+    logger.debug(f"[AI-анализ] Итоговые параметры для prompt: {safe}")
+
+    try:
+        prompt = ANALYSIS_PROMPT_TEMPLATE.format(**safe)
+    except Exception as e:
+        logger.error(f"[AI-анализ] Ошибка генерации prompt: {e}")
+        return f"[AI-анализ] Форматирование prompt не удалось: {e}"
+    logger.info(f"[AI-анализ] Prompt: {prompt[:400]}...")  # для аудита
+
     last_error = None
     for attempt in range(1, MAX_ATTEMPTS + 1):
         try:
@@ -60,6 +80,6 @@ def ai_analyze_unit_economy(params: dict) -> str:
             logger.error(f"[AI-анализ] Ошибка GPT-4: {e}")
             last_error = e
             if attempt < MAX_ATTEMPTS:
-                logger.info(f"[AI-анализ] Ретрай через {DELAY_SECONDS} секунд...")
+                logger.info(f"[AI-анализ] Ретрай через {DELAY_SECONDS * attempt} секунд...")
                 time.sleep(DELAY_SECONDS * attempt)
     return f"[AI-анализ] Не удалось получить ответ от GPT-4: {last_error}"
