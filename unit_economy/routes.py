@@ -204,27 +204,41 @@ HORIZON_METRICS = [
 ]
 
 def get_multiyear_default_form():
-    return {
-        year: {
-            "q_count": 10,
-            "q_days": 247,
-            "q_price": 3800,
-            "q_cost": 1924,
-            "q_extra_count": 5,
-            "q_extra_days": 50,
-            "q_extra_price": 4000,
-            "q_extra_cost": 2500,
-            "nq_count": 40,
-            "nq_days": 247,
-            "nq_price": 2980,
-            "nq_cost": 1924,
-            "nq_extra_count": 10,
-            "nq_extra_days": 30,
-            "nq_extra_price": 3500,
-            "nq_extra_cost": 2000,
-        }
-        for year in YEARS
+    """
+    Возвращает форму с автоиндексацией 10% (выручка и расходы) после 2026 года.
+    2025 и 2026 — фиксированные цифры (можешь подставить любые нужные значения).
+    """
+    # Твои фиксированные данные на 2025 и 2026:
+    BASE = {
+        2025: dict(
+            q_count=10, q_days=247, q_price=3800, q_cost=1924,
+            q_extra_count=5, q_extra_days=50, q_extra_price=4000, q_extra_cost=2500,
+            nq_count=40, nq_days=247, nq_price=2980, nq_cost=1924,
+            nq_extra_count=10, nq_extra_days=30, nq_extra_price=3500, nq_extra_cost=2000,
+        ),
+        2026: dict(
+            q_count=10, q_days=247, q_price=4100, q_cost=2100,
+            q_extra_count=5, q_extra_days=50, q_extra_price=4200, q_extra_cost=2700,
+            nq_count=40, nq_days=247, nq_price=3200, nq_cost=2100,
+            nq_extra_count=10, nq_extra_days=30, nq_extra_price=3700, nq_extra_cost=2200,
+        ),
     }
+    # Автоиндексация 10% с 2027:
+    YEARS = [2025, 2026, 2027, 2028, 2029, 2030]
+    form = {}
+    for i, year in enumerate(YEARS):
+        if year in BASE:
+            form[year] = BASE[year].copy()
+        else:
+            prev = form[year-1]
+            # Индексируем только денежные поля!
+            form[year] = {}
+            for k, v in prev.items():
+                if any(x in k for x in ("price", "cost")):
+                    form[year][k] = round(prev[k] * 1.10)
+                else:
+                    form[year][k] = prev[k]
+    return form
 
 def calc_one_year(data):
     q_shifts = data["q_count"] * data["q_days"]
