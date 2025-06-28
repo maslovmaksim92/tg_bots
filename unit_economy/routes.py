@@ -3,6 +3,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from pathlib import Path
 import re
+
 from .economics import calculate_personnel_economy, calculate_extra_shift_block
 from .ai_analysis import ai_analyze_unit_economy, ai_analyze_unit_economy_multiyear
 
@@ -208,7 +209,6 @@ def get_multiyear_default_form():
             nq_extra_count=10, nq_extra_days=30, nq_extra_price=3700, nq_extra_cost=2200,
         ),
     }
-    YEARS = [2025, 2026, 2027, 2028, 2029, 2030]
     form = {}
     for i, year in enumerate(YEARS):
         if year in BASE:
@@ -291,7 +291,7 @@ async def unit_economy_multiyear_result(request: Request):
     for metric, _ in HORIZON_METRICS:
         total_by_metric[metric] = sum(results_per_year[year][metric] for year in YEARS)
 
-    # AI-анализ динамики — только 1 вызов!
+    # AI-анализ динамики
     ai_analysis = ai_analyze_unit_economy_multiyear(
         [dict(year=year, **results_per_year[year]) for year in YEARS], total_by_metric
     )
