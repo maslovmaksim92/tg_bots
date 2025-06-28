@@ -5,15 +5,13 @@ from pathlib import Path
 from typing import Optional
 import re
 from .economics import calculate_personnel_economy, calculate_extra_shift_block
-from .ai_analysis import ai_analyze_unit_economy
+from .ai_analysis import ai_analyze_unit_economy, ai_analyze_unit_economy_multiyear
 
 router = APIRouter()
 templates = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
 
 def format_ai_analysis(text: str) -> str:
-    """
-    Красивое форматирование SWOT/рекомендаций: жирные заголовки и списки.
-    """
+    """Красивое форматирование SWOT/рекомендаций: жирные заголовки и списки."""
     if not text:
         return ""
     text = re.sub(r'\*\*(.+?)\*\*', r'<b>\1</b>', text)
@@ -22,7 +20,6 @@ def format_ai_analysis(text: str) -> str:
     text = re.sub(r'\n', r'<br>', text)
     return text
 
-# Регистрируем фильтр для jinja2
 templates.env.filters['format_ai_analysis'] = format_ai_analysis
 
 def get_default_form():
@@ -31,7 +28,6 @@ def get_default_form():
         "q_price": 3800,
         "q_cost": 1924,
         "q_days": 247,
-        # новые поля для ДОП. СМЕН
         "q_extra_count": 5,
         "q_extra_price": 4000,
         "q_extra_cost": 2500,
@@ -53,7 +49,6 @@ def checkbox_to_bool(val) -> bool:
         return False
     return str(val).strip().lower() == "true"
 
-# Для каждой строки расчёта — комментарий/описание формулы
 COMMENTS = {
     "shifts_per_year": "Смен в год: Количество сотрудников × рабочих дней",
     "main_revenue": "Выручка основная: Смен в год × цена смены",
@@ -99,7 +94,7 @@ async def unit_economy_result(
         work_days=q_days,
         price_per_shift=q_price,
         cost_per_shift=q_cost,
-        extra_shift=False,  # отдельная секция!
+        extra_shift=False,
         extra_shift_percent=0.0,
         extra_shift_cost_multiplier=1.0
     )
@@ -125,7 +120,6 @@ async def unit_economy_result(
         price=nq_extra_price,
         cost=nq_extra_cost,
     )
-    # Сводные значения (суммы)
     kval_total = {
         "shifts_per_year": kval["shifts_per_year"],
         "main_revenue": kval["main_revenue"],
@@ -193,26 +187,126 @@ async def unit_economy_result(
         }
     )
 
-# Старый AI-анализ через отдельный endpoint — НЕ удалён (можно скрыть в UI)
-@router.post("/ai-analyze", response_class=HTMLResponse)
-async def ai_analyze(
-    request: Request,
-    q_count: int = Form(...),
-    q_price: float = Form(...),
-    q_cost: float = Form(...),
-    q_days: int = Form(...),
-    q_extra_count: int = Form(...),
-    q_extra_price: float = Form(...),
-    q_extra_cost: float = Form(...),
-    q_extra_days: int = Form(...),
-    nq_count: int = Form(...),
-    nq_price: float = Form(...),
-    nq_cost: float = Form(...),
-    nq_days: int = Form(...),
-    nq_extra_count: int = Form(...),
-    nq_extra_price: float = Form(...),
-    nq_extra_cost: float = Form(...),
-    nq_extra_days: int = Form(...)
-):
-    # ... логика идентична unit_economy_result (можно вынести в отдельную функцию)
-    pass  # для краткости опущено
+# ========================
+# МУЛЬТИГОДОВОЙ БЛОК
+# ========================
+
+YEARS = [2025, 2026, 2027, 2028, 2029, 2030]
+HORIZON_METRICS = [
+    ("total_revenue", "Выручка за год, ₽"),
+    ("total_cost", "Себестоимость, ₽"),
+    ("operational_profit", "Операционная прибыль до налогов, ₽"),
+    ("net_profit", "Чистая прибыль, ₽"),
+    ("investor1_share", "Доля инвестора 1 (50%, после НДФЛ 15%), ₽"),
+    ("investor2_share", "Доля инвестора 2 (30%, после НДФЛ 15%), ₽"),
+    ("investor3_share", "Доля инвестора 3 (10%, после НДФЛ 15%), ₽"),
+    ("investor4_share", "Доля инвестора 4 (10%, после НДФЛ 15%), ₽"),
+]
+
+def get_multiyear_default_form():
+    return {
+        year: {
+            "q_count": 10,
+            "q_days": 247,
+            "q_price": 3800,
+            "q_cost": 1924,
+            "q_extra_count": 5,
+            "q_extra_days": 50,
+            "q_extra_price": 4000,
+            "q_extra_cost": 2500,
+            "nq_count": 40,
+            "nq_days": 247,
+            "nq_price": 2980,
+            "nq_cost": 1924,
+            "nq_extra_count": 10,
+            "nq_extra_days": 30,
+            "nq_extra_price": 3500,
+            "nq_extra_cost": 2000,
+        }
+        for year in YEARS
+    }
+
+def calc_one_year(data):
+    q_shifts = data["q_count"] * data["q_days"]
+    q_revenue = q_shifts * data["q_price"]
+    q_cost = q_shifts * data["q_cost"]
+    q_profit = q_revenue - q_cost
+
+    q_extra_shifts = data["q_extra_count"] * data["q_extra_days"]
+    q_extra_revenue = q_extra_shifts * data["q_extra_price"]
+    q_extra_cost = q_extra_shifts * data["q_extra_cost"]
+    q_extra_profit = q_extra_revenue - q_extra_cost
+
+    nq_shifts = data["nq_count"] * data["nq_days"]
+    nq_revenue = nq_shifts * data["nq_price"]
+    nq_cost = nq_shifts * data["nq_cost"]
+    nq_profit = nq_revenue - nq_cost
+
+    nq_extra_shifts = data["nq_extra_count"] * data["nq_extra_days"]
+    nq_extra_revenue = nq_extra_shifts * data["nq_extra_price"]
+    nq_extra_cost = nq_extra_shifts * data["nq_extra_cost"]
+    nq_extra_profit = nq_extra_revenue - nq_extra_cost
+
+    total_revenue = q_revenue + q_extra_revenue + nq_revenue + nq_extra_revenue
+    total_cost = q_cost + q_extra_cost + nq_cost + nq_extra_cost
+    operational_profit = q_profit + q_extra_profit + nq_profit + nq_extra_profit
+    net_profit = operational_profit  # если нет других расходов — считаем чистой
+
+    investor1_share = net_profit * 0.5 * 0.85
+    investor2_share = net_profit * 0.3 * 0.85
+    investor3_share = net_profit * 0.1 * 0.85
+    investor4_share = net_profit * 0.1 * 0.85
+
+    return {
+        "total_revenue": total_revenue,
+        "total_cost": total_cost,
+        "operational_profit": operational_profit,
+        "net_profit": net_profit,
+        "investor1_share": investor1_share,
+        "investor2_share": investor2_share,
+        "investor3_share": investor3_share,
+        "investor4_share": investor4_share,
+    }
+
+@router.get("/multiyear", response_class=HTMLResponse)
+async def unit_economy_multiyear_form(request: Request):
+    form = get_multiyear_default_form()
+    return templates.TemplateResponse(
+        "unit_economy_multiyear.html",
+        {"request": request, "form": form, "YEARS": YEARS, "HORIZON_METRICS": HORIZON_METRICS}
+    )
+
+@router.post("/multiyear", response_class=HTMLResponse)
+async def unit_economy_multiyear_result(request: Request):
+    form = {}
+    data = await request.form()
+    for year in YEARS:
+        form[year] = {}
+        for field in [
+            "q_count", "q_days", "q_price", "q_cost", "q_extra_count", "q_extra_days", "q_extra_price", "q_extra_cost",
+            "nq_count", "nq_days", "nq_price", "nq_cost", "nq_extra_count", "nq_extra_days", "nq_extra_price", "nq_extra_cost"
+        ]:
+            form[year][field] = float(data.get(f"{year}_{field}", 0))
+
+    results_per_year = {year: calc_one_year(form[year]) for year in YEARS}
+
+    total_by_metric = {}
+    for metric, _ in HORIZON_METRICS:
+        total_by_metric[metric] = sum(results_per_year[year][metric] for year in YEARS)
+
+    ai_analysis = ai_analyze_unit_economy_multiyear(
+        [dict(year=year, **results_per_year[year]) for year in YEARS], total_by_metric
+    )
+
+    return templates.TemplateResponse(
+        "unit_economy_multiyear.html",
+        {
+            "request": request,
+            "form": form,
+            "YEARS": YEARS,
+            "HORIZON_METRICS": HORIZON_METRICS,
+            "results_per_year": results_per_year,
+            "total_by_metric": total_by_metric,
+            "ai_analysis": ai_analysis
+        }
+    )
