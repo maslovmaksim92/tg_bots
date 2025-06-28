@@ -1,160 +1,190 @@
-<!-- unit_economy_multiyear.html -->
-<style>
-    .horizon-table th, .horizon-table td { text-align: center; padding: 6px; }
-    .horizon-table th { background: #f6f6fb; }
-    .horizon-table tr.section td { background: #f0f7fa; font-weight: bold; }
-    .horizon-table input { width: 90px; text-align: right; }
-    .horizon-table small { color: #888; font-size: 0.87em; }
-    .results-table { margin-top: 22px; }
-    .results-table th, .results-table td { text-align: right; padding: 5px 8px; }
-    .results-table th { background: #eceeff; }
-    .results-table td:first-child, .horizon-table td:first-child { text-align: left; }
-    .btn-main { padding: 8px 32px; font-size: 1.2em; margin-top: 18px; border-radius: 8px; border: none; background: #466de3; color: #fff; cursor: pointer; }
-    .btn-main:hover { background: #2a4dbe; }
-    .swot-block { background: #faf7e5; padding: 20px; border-radius: 12px; margin-top: 22px; }
-</style>
-<form method="post" autocomplete="off">
-    <table class="horizon-table" border="1" style="border-collapse:collapse; width:100%; min-width:1200px;">
-        <tr>
-            <th>Статья/Год</th>
-            {% for year in YEARS %}
-                <th>{{ year }}</th>
-            {% endfor %}
-        </tr>
-        <tr class="section"><td colspan="{{ YEARS|length + 1 }}">Квалифицированный персонал</td></tr>
-        <tr>
-            <td>Количество</td>
-            {% for year in YEARS %}
-                <td><input type="number" min="0" name="{{ year }}_q_count" value="{{ form[year]['q_count'] }}" required></td>
-            {% endfor %}
-        </tr>
-        <tr>
-            <td>Рабочих дней</td>
-            {% for year in YEARS %}
-                <td><input type="number" min="0" name="{{ year }}_q_days" value="{{ form[year]['q_days'] }}"></td>
-            {% endfor %}
-        </tr>
-        <tr>
-            <td>Цена смены, ₽<br><small>Доход за смену</small></td>
-            {% for year in YEARS %}
-                <td><input type="number" min="0" step="0.01" name="{{ year }}_q_price" value="{{ form[year]['q_price'] }}"></td>
-            {% endfor %}
-        </tr>
-        <tr>
-            <td>Себестоимость смены, ₽<br><small>Расход на смену</small></td>
-            {% for year in YEARS %}
-                <td><input type="number" min="0" step="0.01" name="{{ year }}_q_cost" value="{{ form[year]['q_cost'] }}"></td>
-            {% endfor %}
-        </tr>
-        <tr>
-            <td>В доп. сменах (чел)</td>
-            {% for year in YEARS %}
-                <td><input type="number" min="0" name="{{ year }}_q_extra_count" value="{{ form[year]['q_extra_count'] }}"></td>
-            {% endfor %}
-        </tr>
-        <tr>
-            <td>Дней в доп. сменах</td>
-            {% for year in YEARS %}
-                <td><input type="number" min="0" name="{{ year }}_q_extra_days" value="{{ form[year]['q_extra_days'] }}"></td>
-            {% endfor %}
-        </tr>
-        <tr>
-            <td>Цена доп. смены, ₽</td>
-            {% for year in YEARS %}
-                <td><input type="number" min="0" step="0.01" name="{{ year }}_q_extra_price" value="{{ form[year]['q_extra_price'] }}"></td>
-            {% endfor %}
-        </tr>
-        <tr>
-            <td>Себест. доп. смены, ₽</td>
-            {% for year in YEARS %}
-                <td><input type="number" min="0" step="0.01" name="{{ year }}_q_extra_cost" value="{{ form[year]['q_extra_cost'] }}"></td>
-            {% endfor %}
-        </tr>
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Unit-экономика 2025–2030 (мультигодовой расчет)</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 2rem; }
+        table, th, td { border: 1px solid #ddd; border-collapse: collapse; padding: 4px 7px; }
+        th { background: #f2f2f2; }
+        .horizon-table th, .horizon-table td { text-align: center; padding: 6px; }
+        .horizon-table th { background: #f6f6fb; }
+        .horizon-table tr.section td { background: #f0f7fa; font-weight: bold; }
+        .horizon-table input { width: 80px; text-align: right; }
+        .horizon-table small { color: #888; font-size: 0.87em; }
+        .results-table { margin-top: 22px; }
+        .results-table th, .results-table td { text-align: right; padding: 5px 8px; }
+        .results-table th { background: #eceeff; }
+        .results-table td:first-child, .horizon-table td:first-child { text-align: left; }
+        .btn-main { padding: 7px 20px; font-size: 1.1em; margin-top: 10px; border-radius: 8px; border: none; background: #466de3; color: #fff; cursor: pointer; }
+        .btn-main:hover { background: #2a4dbe; }
+        .swot-block { background: #faf7e5; padding: 20px; border-radius: 12px; margin-top: 22px; }
+    </style>
+</head>
+<body>
+    <h2>Unit-экономика 2025–2030 (мультигодовой расчет)</h2>
+    <form method="post" autocomplete="off">
+        <table class="horizon-table" border="1" style="border-collapse:collapse; width:100%; min-width:1200px;">
+            <tr>
+                <th>Статья/Год</th>
+                {% for year in YEARS %}
+                    <th>{{ year }}</th>
+                {% endfor %}
+            </tr>
+            <tr class="section"><td colspan="{{ YEARS|length + 1 }}">Квалифицированный персонал (швеи)</td></tr>
+            <tr>
+                <td>Кол-во (чел)<br><small>Вводится вручную</small></td>
+                {% for year in YEARS %}
+                    <td><input type="number" min="0" step="1" name="{{ year }}_q_count" value="{{ form[year]['q_count'] }}" required></td>
+                {% endfor %}
+            </tr>
+            <tr>
+                <td>Рабочих дней в году<br><small>Вводится вручную</small></td>
+                {% for year in YEARS %}
+                    <td><input type="number" min="0" step="1" name="{{ year }}_q_days" value="{{ form[year]['q_days'] }}"></td>
+                {% endfor %}
+            </tr>
+            <tr>
+                <td>Цена смены, ₽<br><small>Вводится вручную</small></td>
+                {% for year in YEARS %}
+                    <td><input type="number" min="0" step="10" name="{{ year }}_q_price" value="{{ form[year]['q_price'] }}"></td>
+                {% endfor %}
+            </tr>
+            <tr>
+                <td>Себестоимость смены, ₽<br><small>Вводится вручную</small></td>
+                {% for year in YEARS %}
+                    <td><input type="number" min="0" step="10" name="{{ year }}_q_cost" value="{{ form[year]['q_cost'] }}"></td>
+                {% endfor %}
+            </tr>
+            <tr>
+                <td>Доп. смены (чел)<br><small>Вводится вручную</small></td>
+                {% for year in YEARS %}
+                    <td><input type="number" min="0" step="1" name="{{ year }}_q_extra_count" value="{{ form[year]['q_extra_count'] }}"></td>
+                {% endfor %}
+            </tr>
+            <tr>
+                <td>Дней в доп. сменах<br><small>Вводится вручную</small></td>
+                {% for year in YEARS %}
+                    <td><input type="number" min="0" step="1" name="{{ year }}_q_extra_days" value="{{ form[year]['q_extra_days'] }}"></td>
+                {% endfor %}
+            </tr>
+            <tr>
+                <td>Цена доп. смены, ₽<br><small>Вводится вручную</small></td>
+                {% for year in YEARS %}
+                    <td><input type="number" min="0" step="10" name="{{ year }}_q_extra_price" value="{{ form[year]['q_extra_price'] }}"></td>
+                {% endfor %}
+            </tr>
+            <tr>
+                <td>Себест. доп. смены, ₽<br><small>Вводится вручную</small></td>
+                {% for year in YEARS %}
+                    <td><input type="number" min="0" step="10" name="{{ year }}_q_extra_cost" value="{{ form[year]['q_extra_cost'] }}"></td>
+                {% endfor %}
+            </tr>
+            <tr class="section"><td colspan="{{ YEARS|length + 1 }}">Неквалифицированный персонал (уборщицы)</td></tr>
+            <tr>
+                <td>Кол-во (чел)<br><small>Вводится вручную</small></td>
+                {% for year in YEARS %}
+                    <td><input type="number" min="0" step="1" name="{{ year }}_nq_count" value="{{ form[year]['nq_count'] }}"></td>
+                {% endfor %}
+            </tr>
+            <tr>
+                <td>Рабочих дней в году<br><small>Вводится вручную</small></td>
+                {% for year in YEARS %}
+                    <td><input type="number" min="0" step="1" name="{{ year }}_nq_days" value="{{ form[year]['nq_days'] }}"></td>
+                {% endfor %}
+            </tr>
+            <tr>
+                <td>Цена смены, ₽<br><small>Вводится вручную</small></td>
+                {% for year in YEARS %}
+                    <td><input type="number" min="0" step="10" name="{{ year }}_nq_price" value="{{ form[year]['nq_price'] }}"></td>
+                {% endfor %}
+            </tr>
+            <tr>
+                <td>Себестоимость смены, ₽<br><small>Вводится вручную</small></td>
+                {% for year in YEARS %}
+                    <td><input type="number" min="0" step="10" name="{{ year }}_nq_cost" value="{{ form[year]['nq_cost'] }}"></td>
+                {% endfor %}
+            </tr>
+            <tr>
+                <td>Доп. смены (чел)<br><small>Вводится вручную</small></td>
+                {% for year in YEARS %}
+                    <td><input type="number" min="0" step="1" name="{{ year }}_nq_extra_count" value="{{ form[year]['nq_extra_count'] }}"></td>
+                {% endfor %}
+            </tr>
+            <tr>
+                <td>Дней в доп. сменах<br><small>Вводится вручную</small></td>
+                {% for year in YEARS %}
+                    <td><input type="number" min="0" step="1" name="{{ year }}_nq_extra_days" value="{{ form[year]['nq_extra_days'] }}"></td>
+                {% endfor %}
+            </tr>
+            <tr>
+                <td>Цена доп. смены, ₽<br><small>Вводится вручную</small></td>
+                {% for year in YEARS %}
+                    <td><input type="number" min="0" step="10" name="{{ year }}_nq_extra_price" value="{{ form[year]['nq_extra_price'] }}"></td>
+                {% endfor %}
+            </tr>
+            <tr>
+                <td>Себест. доп. смены, ₽<br><small>Вводится вручную</small></td>
+                {% for year in YEARS %}
+                    <td><input type="number" min="0" step="10" name="{{ year }}_nq_extra_cost" value="{{ form[year]['nq_extra_cost'] }}"></td>
+                {% endfor %}
+            </tr>
+            <tr class="section"><td colspan="{{ YEARS|length + 1 }}">Прочие расходы и доходы</td></tr>
+            <tr>
+                <td>ФОТ, тыс. ₽ в мес.<br><small>Автоиндексация 10%/год</small></td>
+                {% for year in YEARS %}
+                    <td><input type="number" min="0" step="100" name="{{ year }}_fot" value="{{ form[year]['fot'] }}"></td>
+                {% endfor %}
+            </tr>
+            <tr>
+                <td>Аренда офиса, тыс. ₽ в мес.<br><small>Автоиндексация 10%/год</small></td>
+                {% for year in YEARS %}
+                    <td><input type="number" min="0" step="10" name="{{ year }}_office_rent" value="{{ form[year]['office_rent'] }}"></td>
+                {% endfor %}
+            </tr>
+            <tr>
+                <td>Доход от склада, тыс. ₽ в мес.<br><small>Автоиндексация 10%/год</small></td>
+                {% for year in YEARS %}
+                    <td><input type="number" min="0" step="10" name="{{ year }}_warehouse_income" value="{{ form[year]['warehouse_income'] }}"></td>
+                {% endfor %}
+            </tr>
+        </table>
+        <div style="text-align:left; margin-top:10px;">
+            <button type="submit" class="btn-main">Рассчитать</button>
+        </div>
+    </form>
 
-        <tr class="section"><td colspan="{{ YEARS|length + 1 }}">Неквалифицированный персонал</td></tr>
-        <tr>
-            <td>Количество</td>
+    {% if results_per_year %}
+        <h3 style="margin-top: 36px;">Результаты расчёта по годам</h3>
+        <table class="results-table" border="1" style="border-collapse: collapse; width: 100%; min-width: 1200px;">
+            <tr>
+                <th>Год</th>
+                {% for metric, name in HORIZON_METRICS %}
+                    <th>{{ name }}</th>
+                {% endfor %}
+            </tr>
             {% for year in YEARS %}
-                <td><input type="number" min="0" name="{{ year }}_nq_count" value="{{ form[year]['nq_count'] }}"></td>
+            <tr>
+                <td style="font-weight:bold;">{{ year }}</td>
+                {% for metric, name in HORIZON_METRICS %}
+                    <td>{{ results_per_year[year][metric]|int }}</td>
+                {% endfor %}
+            </tr>
             {% endfor %}
-        </tr>
-        <tr>
-            <td>Рабочих дней</td>
-            {% for year in YEARS %}
-                <td><input type="number" min="0" name="{{ year }}_nq_days" value="{{ form[year]['nq_days'] }}"></td>
-            {% endfor %}
-        </tr>
-        <tr>
-            <td>Цена смены, ₽</td>
-            {% for year in YEARS %}
-                <td><input type="number" min="0" step="0.01" name="{{ year }}_nq_price" value="{{ form[year]['nq_price'] }}"></td>
-            {% endfor %}
-        </tr>
-        <tr>
-            <td>Себест. смены, ₽</td>
-            {% for year in YEARS %}
-                <td><input type="number" min="0" step="0.01" name="{{ year }}_nq_cost" value="{{ form[year]['nq_cost'] }}"></td>
-            {% endfor %}
-        </tr>
-        <tr>
-            <td>В доп. сменах (чел)</td>
-            {% for year in YEARS %}
-                <td><input type="number" min="0" name="{{ year }}_nq_extra_count" value="{{ form[year]['nq_extra_count'] }}"></td>
-            {% endfor %}
-        </tr>
-        <tr>
-            <td>Дней в доп. сменах</td>
-            {% for year in YEARS %}
-                <td><input type="number" min="0" name="{{ year }}_nq_extra_days" value="{{ form[year]['nq_extra_days'] }}"></td>
-            {% endfor %}
-        </tr>
-        <tr>
-            <td>Цена доп. смены, ₽</td>
-            {% for year in YEARS %}
-                <td><input type="number" min="0" step="0.01" name="{{ year }}_nq_extra_price" value="{{ form[year]['nq_extra_price'] }}"></td>
-            {% endfor %}
-        </tr>
-        <tr>
-            <td>Себест. доп. смены, ₽</td>
-            {% for year in YEARS %}
-                <td><input type="number" min="0" step="0.01" name="{{ year }}_nq_extra_cost" value="{{ form[year]['nq_extra_cost'] }}"></td>
-            {% endfor %}
-        </tr>
-    </table>
-    <div style="text-align:right">
-        <button type="submit" class="btn-main">Рассчитать</button>
-    </div>
-</form>
+            <tr style="font-weight: bold; background:#fcf8e4;">
+                <td>Сумма</td>
+                {% for metric, name in HORIZON_METRICS %}
+                    <td>{{ total_by_metric[metric]|int }}</td>
+                {% endfor %}
+            </tr>
+        </table>
+    {% endif %}
 
-{% if results_per_year %}
-    <h3 style="margin-top: 36px;">Результаты расчёта по годам</h3>
-    <table class="results-table" border="1" style="border-collapse: collapse; width: 100%; min-width: 1200px;">
-        <tr>
-            <th>Год</th>
-            {% for metric, name in HORIZON_METRICS %}
-                <th>{{ name }}</th>
-            {% endfor %}
-        </tr>
-        {% for year in YEARS %}
-        <tr>
-            <td style="font-weight:bold;">{{ year }}</td>
-            {% for metric, name in HORIZON_METRICS %}
-                <td>{{ results_per_year[year][metric]|int }}</td>
-            {% endfor %}
-        </tr>
-        {% endfor %}
-        <tr style="font-weight: bold; background:#fcf8e4;">
-            <td>Сумма</td>
-            {% for metric, name in HORIZON_METRICS %}
-                <td>{{ total_by_metric[metric]|int }}</td>
-            {% endfor %}
-        </tr>
-    </table>
-{% endif %}
-
-{% if ai_analysis %}
-    <div class="swot-block">
-        <h3>SWOT/AI-анализ</h3>
-        {{ ai_analysis | safe }}
-    </div>
-{% endif %}
+    {% if ai_analysis %}
+        <div class="swot-block">
+            <h3>SWOT/AI-анализ</h3>
+            {{ ai_analysis | safe }}
+        </div>
+    {% endif %}
+</body>
+</html>
