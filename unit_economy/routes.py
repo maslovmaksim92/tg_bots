@@ -250,7 +250,7 @@ def calc_one_year(data):
     total_revenue = q_revenue + q_extra_revenue + nq_revenue + nq_extra_revenue
     total_cost = q_cost + q_extra_cost + nq_cost + nq_extra_cost
     operational_profit = q_profit + q_extra_profit + nq_profit + nq_extra_profit
-    net_profit = operational_profit  # если нет других расходов — считаем чистой
+    net_profit = operational_profit
 
     investor1_share = net_profit * 0.5 * 0.85
     investor2_share = net_profit * 0.3 * 0.85
@@ -294,6 +294,7 @@ async def unit_economy_multiyear_result(request: Request):
     for metric, _ in HORIZON_METRICS:
         total_by_metric[metric] = sum(results_per_year[year][metric] for year in YEARS)
 
+    # AI-анализ динамики — теперь форматируется markdown->html для красивой разметки
     ai_analysis = ai_analyze_unit_economy_multiyear(
         [dict(year=year, **results_per_year[year]) for year in YEARS], total_by_metric
     )
