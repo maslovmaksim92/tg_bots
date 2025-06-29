@@ -4,16 +4,17 @@
     <meta charset="UTF-8">
     <title>Unit-экономика 2026–2030 (мультигодовой расчет)</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <!-- Google Fonts: Inter + Roboto Slab для заголовков -->
+    <!-- Google Fonts: Inter + Roboto Slab + JetBrains Mono (цифры, code) -->
     <link href="https://fonts.googleapis.com/css?family=Inter:400,500,700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css?family=Roboto+Slab:700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=JetBrains+Mono:600&display=swap" rel="stylesheet">
     <style>
         :root {
-            --main-bg: #f3f7fa;
+            --main-bg: #f6f8fb;
             --main-card: #fff;
             --main-accent: #466de3;
             --main-shadow: 0 4px 24px #dae5fa70;
-            --main-radius: 17px;
+            --main-radius: 18px;
             --accent-grad: linear-gradient(90deg, #466de3 0%, #63a4ff 100%);
             --primary: #466de3;
             --table-header: #eaf1fa;
@@ -23,147 +24,226 @@
             --hover: #e8f6fd;
             --strong: #208a4d;
             --swot: #f4fcf7;
+            --block-sep: #e6ebf8;
+            --main-contrast: #233344;
+            --grey: #a8b6d1;
         }
         html, body {
             min-height: 100%;
             margin: 0;
             background: var(--main-bg);
             font-family: 'Inter', Arial, sans-serif;
-            color: #233344;
+            color: var(--main-contrast);
             letter-spacing: 0.01em;
+            scroll-behavior: smooth;
+        }
+        body {
+            animation: fadeBody 0.88s;
+        }
+        @keyframes fadeBody {
+            from { opacity: 0;}
+            to { opacity: 1;}
         }
         h2 {
             margin: 2.2rem 0 1.3rem 0;
             font-family: 'Roboto Slab', serif;
             font-weight: 700;
             color: var(--main-accent);
-            font-size: 2.15rem;
+            font-size: 2.25rem;
             letter-spacing: 0.02em;
             text-align: left;
+            line-height: 1.17;
+        }
+        h2::after {
+            content: '';
+            display: block;
+            width: 135px;
+            height: 4.2px;
+            margin-top: 12px;
+            border-radius: 8px;
+            background: var(--accent-grad);
         }
         .container {
-            max-width: 1200px;
+            max-width: 1270px;
             margin: 0 auto;
             padding-bottom: 4rem;
+            position: relative;
         }
+        /* Card/section improvements */
         .card-section {
             background: var(--main-card);
             border-radius: var(--main-radius);
             box-shadow: var(--main-shadow);
-            margin: 2.4rem 0 2.4rem 0;
-            padding: 2rem 2.7rem 2.2rem 2.7rem;
+            margin: 2.7rem 0 2.5rem 0;
+            padding: 2.1rem 2.9rem 2.3rem 2.9rem;
             position: relative;
-            transition: box-shadow 0.25s;
+            transition: box-shadow 0.28s;
             border: 1px solid #e5eefe;
+            animation: cardIn 0.85s cubic-bezier(.38,.2,.18,1.07);
+        }
+        @keyframes cardIn {
+            from { opacity: 0; transform: translateY(55px);}
+            to { opacity: 1; transform: translateY(0);}
         }
         .card-section h3 {
             font-family: 'Roboto Slab', serif;
             margin-top: 0;
-            margin-bottom: 1.15em;
+            margin-bottom: 1.1em;
             color: #2a3a6d;
-            font-size: 1.25rem;
-            letter-spacing: 0.03em;
+            font-size: 1.23rem;
+            letter-spacing: 0.02em;
         }
+        .card-section:not(:last-child) { border-bottom: 2px solid var(--block-sep); }
+        .block-title {
+            font-size: 1.11em;
+            font-family: 'Inter', Arial, sans-serif;
+            margin-top: 2.2em;
+            color: #3956a4;
+            font-weight: 500;
+            letter-spacing: 0.01em;
+            text-transform: uppercase;
+        }
+        /* Stepper */
+        .stepper {
+            display: flex; align-items: center;
+            margin: 1.7rem 0 1.2rem 0;
+        }
+        .step {
+            width: 31px; height: 31px;
+            border-radius: 50%;
+            background: var(--main-accent);
+            color: #fff;
+            font-weight: 700;
+            margin-right: 16px;
+            text-align: center; line-height: 31px;
+            font-size: 1.09em;
+            box-shadow: 0 2px 8px #bad0fd40;
+        }
+        .step-label {
+            font-size: 1.08em;
+            color: #355fa6;
+            margin-right: 22px;
+            letter-spacing: 0.01em;
+        }
+        /* Main forms & inputs */
         .horizon-table th, .horizon-table td {
-            text-align: center; 
-            padding: 9px 6px; 
+            text-align: center;
+            padding: 9px 7px;
         }
         .horizon-table {
             border-radius: 12px;
             overflow: hidden;
             width: 100%;
-            margin-bottom: 1.1rem;
+            margin-bottom: 1.15rem;
             box-shadow: 0 1px 7px #e0ecfa42;
+            border-collapse: separate;
+            border-spacing: 0;
+            background: #fcfdff;
         }
         .horizon-table th {
             background: var(--table-header);
-            font-weight: 600;
-            color: #355fa6;
-            font-size: 1.01em;
+            font-weight: 700;
+            color: #2954a2;
+            font-size: 1.03em;
+            font-family: 'Inter', Arial, sans-serif;
         }
         .horizon-table tr.section td {
             background: #e9f7fa;
             font-weight: bold;
-            font-size: 1.10em;
+            font-size: 1.12em;
             color: #217297;
         }
-        .horizon-table tr:nth-child(even) { background: var(--table-even); }
-        .horizon-table tr:nth-child(odd) { background: var(--table-odd); }
+        .horizon-table tr:nth-child(even) { background: var(--table-even);}
+        .horizon-table tr:nth-child(odd) { background: var(--table-odd);}
         .horizon-table input {
             width: 88px;
             text-align: right;
-            border-radius: 9px;
+            border-radius: 10px;
             border: 1.5px solid #c4d4f7;
             padding: 5px 8px;
-            font-size: 1.07em;
+            font-size: 1.09em;
             background: #f8fbff;
+            font-family: 'JetBrains Mono', 'Inter', monospace;
             box-shadow: 0 1px 5px #e7eefc38;
             transition: border .17s, box-shadow .2s;
         }
-        .horizon-table input:focus { 
+        .horizon-table input:focus {
             border: 2px solid var(--main-accent);
             background: #f0f6ff;
             outline: none;
             box-shadow: 0 0 0 2px #bcd8ff2b;
         }
         .horizon-table input[type="number"]::-webkit-inner-spin-button,
-        .horizon-table input[type="number"]::-webkit-outer-spin-button { 
-            -webkit-appearance: none;
-            margin: 0; 
+        .horizon-table input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none; margin: 0;
         }
-        .horizon-table small { color: #8b8b8b; font-size: 0.93em; }
-        /* Add gentle row hover for better UX */
-        .horizon-table tr:hover td { background: #f0f8ff; }
-
+        .horizon-table small { color: #8b8b8b; font-size: 0.93em;}
+        .horizon-table tr:hover td { background: #f0f8ff;}
+        /* Table sticky headers for large tables */
+        .results-table th, .investor-table th { position: sticky; top: 0; z-index: 2;}
+        /* Table cell highlight on edit */
+        .horizon-table td:focus-within, .results-table td:focus-within { background: #e0f1ff !important; transition: background 0.1s;}
         /* Enhanced results table */
+        .results-block {
+            margin-bottom: 1.4rem;
+        }
+        .results-block-title {
+            font-size: 1.13em;
+            font-family: 'Roboto Slab', serif;
+            color: #4c7fd8;
+            margin: 0 0 0.7em 0;
+            letter-spacing: 0.01em;
+        }
         .results-table {
-            margin-top: 32px;
+            margin: 0 0 32px 0;
             border-collapse: separate;
             border-spacing: 0;
             width: 100%;
-            border-radius: 14px;
+            border-radius: 16px;
             overflow: hidden;
             background: var(--main-card);
             box-shadow: 0 2px 12px #e9effa63;
         }
         .results-table th, .results-table td {
             border: none;
-            padding: 12px 10px;
+            padding: 13px 13px;
             font-size: 1.08em;
+            font-family: 'Inter', Arial, sans-serif;
         }
         .results-table th {
             background: linear-gradient(90deg,#e9f0fb 0%,#d9ebfa 100%);
             color: #2954a2;
             font-weight: 700;
-            font-size: 1.07em;
+            font-size: 1.08em;
             letter-spacing: 0.02em;
         }
         .results-table td {
             border-bottom: 1px solid #e9edfa;
+            font-family: 'JetBrains Mono', 'Inter', monospace;
         }
         .results-table tr:last-child td {
             background: var(--success);
             font-weight: bold;
         }
-        .results-table tr:nth-child(even) {
-            background: #f9fcff;
-        }
-        .results-table tr:nth-child(odd) {
-            background: #f4f9ff;
-        }
-        .results-table tr:hover td {
-            background: #eaf5ff !important;
-            transition: background 0.15s;
-        }
+        .results-table tr:nth-child(even) { background: #f9fcff;}
+        .results-table tr:nth-child(odd) { background: #f4f9ff;}
+        .results-table tr:hover td { background: #eaf5ff !important; transition: background 0.13s;}
         .results-table td.comment-col {
             color: #7489a8;
-            font-size: 0.99em;
+            font-size: 0.98em;
             min-width: 142px;
             text-align: left;
+            font-family: 'Inter', Arial, sans-serif;
+        }
+        .results-section-sep {
+            background: #eaf0fd !important;
+            font-weight: 700;
+            color: #3a6fd2;
+            font-size: 1.06em;
         }
         /* Investor table styling */
         .investor-table {
-            margin-top: 35px;
+            margin-top: 20px;
             border-radius: 13px;
             overflow: hidden;
             border-collapse: separate;
@@ -181,35 +261,30 @@
         .investor-table td {
             background: #f8fbfd;
             font-weight: 600;
-            font-size: 1.07em;
+            font-size: 1.08em;
             color: #28574d;
             border-bottom: 1px solid #e0eee4;
+            font-family: 'JetBrains Mono', 'Inter', monospace;
         }
-        .investor-table tr.total-row td {
-            background: #eaf6e9;
-            font-weight: bold;
-        }
-        .investor-table tr:nth-child(even) {
-            background: #f3faf7;
-        }
+        .investor-table tr:nth-child(even) { background: #f3faf7;}
         .investor-table tr:hover td { background: #e3fff0 !important;}
+        /* SWOT + AI analysis block */
         .swot-block {
             border: 2px solid var(--strong);
             background: var(--swot);
-            border-radius: 15px;
-            padding: 28px 33px;
-            margin-top: 36px;
-            font-size: 1.19em;
+            border-radius: 16px;
+            padding: 29px 38px;
+            margin-top: 40px;
+            font-size: 1.17em;
             box-shadow: 0 1px 16px #e2f7ee;
         }
-        .swot-block b, .swot-block strong {
-            color: var(--strong);
-        }
+        .swot-block b, .swot-block strong { color: var(--strong);}
+        /* Button with gradient and animation */
         button {
             padding: 15px 38px;
             font-size: 1.16em;
-            margin-top: 24px;
-            border-radius: 9px;
+            margin-top: 22px;
+            border-radius: 10px;
             border: none;
             background: var(--accent-grad);
             color: #fff;
@@ -217,58 +292,16 @@
             box-shadow: 0 2px 12px #bad0fd67;
             font-weight: 600;
             letter-spacing: 0.03em;
-            transition: background 0.2s, box-shadow 0.22s, transform 0.1s;
+            transition: background 0.2s, box-shadow 0.22s, transform 0.09s;
         }
         button:hover { background: #345cd4; transform: translateY(-1px) scale(1.02);}
-        /* Stepper for section navigation */
-        .stepper {
-            display: flex; align-items: center;
-            margin: 1.7rem 0 1.2rem 0;
+        /* Section divider line */
+        .section-divider {
+            border: none;
+            border-top: 1.5px solid #e8eefd;
+            margin: 32px 0 28px 0;
         }
-        .step {
-            width: 30px; height: 30px;
-            border-radius: 50%;
-            background: var(--main-accent);
-            color: #fff;
-            font-weight: 700;
-            margin-right: 16px;
-            text-align: center; line-height: 30px;
-            font-size: 1.08em;
-            box-shadow: 0 2px 8px #bad0fd40;
-        }
-        .step-label {
-            font-size: 1.03em;
-            color: #355fa6;
-            margin-right: 22px;
-            letter-spacing: 0.01em;
-        }
-        /* Animation for card entrance */
-        .card-section { animation: cardIn 0.85s cubic-bezier(.38,.2,.18,1.07);}
-        @keyframes cardIn {
-            from { opacity: 0; transform: translateY(50px);}
-            to { opacity: 1; transform: translateY(0);}
-        }
-        /* Gradient underline for h2 */
-        h2::after {
-            content: '';
-            display: block;
-            width: 120px;
-            height: 4px;
-            margin-top: 9px;
-            border-radius: 8px;
-            background: var(--accent-grad);
-        }
-        /* Responsive + mobile */
-        @media (max-width: 1200px) {
-            .container { max-width: 99vw; }
-        }
-        @media (max-width: 900px) {
-            h2 { font-size: 1.35rem; }
-            .horizon-table, .results-table, .investor-table { font-size: 0.98em; min-width: 540px; }
-            .card-section { padding: 1rem 0.3rem 1rem 0.5rem; }
-            .swot-block { font-size: 1em; padding: 18px 12px;}
-        }
-        /* Tooltip help icon for table headers */
+        /* Info tooltip icons */
         .info-icon {
             display: inline-block;
             background: #eff5ff;
@@ -276,14 +309,14 @@
             border-radius: 50%;
             width: 18px; height: 18px;
             text-align: center;
-            font-size: 0.9em;
+            font-size: 0.97em;
             font-weight: 900;
             margin-left: 4px;
             cursor: pointer;
             position: relative;
             transition: background 0.18s;
         }
-        .info-icon:hover { background: #d7ebff; }
+        .info-icon:hover { background: #d7ebff;}
         .tooltip {
             display: none;
             position: absolute;
@@ -291,49 +324,25 @@
             z-index: 9;
             background: #fff;
             color: #19324d;
-            font-size: 0.95em;
+            font-size: 0.96em;
             border: 1px solid #c0d0e7;
             border-radius: 7px;
             padding: 8px 13px;
             box-shadow: 0 4px 16px #bad0fd45;
-            min-width: 150px;
+            min-width: 140px;
         }
         .info-icon:hover .tooltip { display: block;}
-        /* Faint gradient border on section */
-        .card-section {
-            border: 1.5px solid transparent;
-            background-clip: padding-box;
-            box-shadow: 0 2px 18px #dae5fa50;
-        }
-        .card-section:hover {
-            border: 1.5px solid #bbd0f8;
-            box-shadow: 0 5px 26px #e6f1fc88;
-        }
-        /* Table cell highlight on edit */
-        .horizon-table td:focus-within, .results-table td:focus-within {
-            background: #e0f1ff !important;
-            transition: background 0.1s;
-        }
-        /* Section separator line */
-        .section-divider {
-            border: none;
-            border-top: 1.5px solid #e8eefd;
-            margin: 32px 0 28px 0;
-        }
         /* Fancy scrollbar */
         ::-webkit-scrollbar { width: 9px; background: #eaf1fa;}
         ::-webkit-scrollbar-thumb { background: #cbe3ff; border-radius: 7px;}
         ::selection { background: #b3cefa; color: #fff;}
-        /* Table sticky headers for large tables */
-        .results-table th, .investor-table th {
-            position: sticky;
-            top: 0; z-index: 2;
-        }
-        /* Fade in on load */
-        body { animation: fadeBody 0.88s;}
-        @keyframes fadeBody {
-            from { opacity: 0;}
-            to { opacity: 1;}
+        /* Responsive improvements */
+        @media (max-width: 1200px) { .container { max-width: 99vw; } }
+        @media (max-width: 900px) {
+            h2 { font-size: 1.35rem; }
+            .horizon-table, .results-table, .investor-table { font-size: 0.98em; min-width: 540px;}
+            .card-section { padding: 1rem 0.3rem 1rem 0.5rem;}
+            .swot-block { font-size: 1em; padding: 17px 10px;}
         }
     </style>
 </head>
@@ -341,6 +350,7 @@
     <h2>Unit-экономика 2026–2030 (мультигодовой расчет)</h2>
     <div class="container">
     <form method="post" autocomplete="off">
+        <!-- 1. Квалифицированный персонал -->
         <div class="card-section">
             <div class="stepper">
                 <div class="step">1</div>
@@ -353,7 +363,6 @@
                         <th>{{ year }}</th>
                     {% endfor %}
                 </tr>
-                <!-- ... все поля швеи ... -->
                 <tr>
                     <td>Кол-во (чел)<br><small>Вводится вручную</small></td>
                     {% for year in YEARS %}
@@ -405,6 +414,7 @@
             </table>
         </div>
         <hr class="section-divider">
+        <!-- 2. Неквалифицированный персонал -->
         <div class="card-section">
             <div class="stepper">
                 <div class="step">2</div>
@@ -417,7 +427,6 @@
                         <th>{{ year }}</th>
                     {% endfor %}
                 </tr>
-                <!-- ... все поля уборщицы ... -->
                 <tr>
                     <td>Кол-во (чел)</td>
                     {% for year in YEARS %}
@@ -469,6 +478,7 @@
             </table>
         </div>
         <hr class="section-divider">
+        <!-- 3. Прочие расходы и доходы -->
         <div class="card-section">
             <div class="stepper">
                 <div class="step">3</div>
@@ -483,7 +493,7 @@
                 </tr>
                 <tr>
                     <td>
-                        ФОТ, тыс. ₽ в мес. 
+                        ФОТ, тыс. ₽ в мес.
                         <span class="info-icon" tabindex="0">?
                             <span class="tooltip">ФОТ × 12 мес</span>
                         </span>
@@ -521,27 +531,28 @@
             </div>
         </div>
     </form>
-
     {% if results_per_year %}
+    <!-- 4. Итоговые таблицы с блоками -->
     <div class="card-section">
         <div class="stepper">
             <div class="step">4</div>
             <div class="step-label">Основные показатели по годам</div>
         </div>
-        <table class="results-table">
-            <tr>
-                <th>Показатель</th>
-                {% for year in YEARS %}
-                    <th>{{ year }}</th>
-                {% endfor %}
-                <th>Комментарий к расчету</th>
-            </tr>
-            {% for metric, label, comment in METRICS_WITH_COMMENTS %}
-            <tr>
-                <td>{{ label }}</td>
-                {% for year in YEARS %}
-                    <td>
-                        {# Округление и сокращение для крупных чисел #}
+
+        <!-- 1. Производство: квалифицированный персонал -->
+        <div class="results-block">
+            <div class="results-block-title">Квалифицированный персонал (швеи)</div>
+            <table class="results-table">
+                <tr>
+                    <th>Показатель</th>
+                    {% for year in YEARS %}<th>{{ year }}</th>{% endfor %}
+                    <th>Комментарий к расчету</th>
+                </tr>
+                {% for metric, label, comment in METRICS_BLOCKS['q'] %}
+                <tr>
+                    <td>{{ label }}</td>
+                    {% for year in YEARS %}
+                        <td>
                         {% set val = results_per_year[year][metric] %}
                         {% if val is number and val >= 1_000_000 %}
                             {{ (val / 1_000_000)|round(1) }} млн
@@ -550,14 +561,73 @@
                         {% else %}
                             {{ val|round(0) }}
                         {% endif %}
-                    </td>
+                        </td>
+                    {% endfor %}
+                    <td class="comment-col">{{ comment }}</td>
+                </tr>
                 {% endfor %}
-                <td class="comment-col">{{ comment }}</td>
-            </tr>
-            {% endfor %}
-        </table>
+            </table>
+        </div>
+        <!-- 2. Производство: неквалифицированный персонал -->
+        <div class="results-block">
+            <div class="results-block-title">Неквалифицированный персонал (уборщицы)</div>
+            <table class="results-table">
+                <tr>
+                    <th>Показатель</th>
+                    {% for year in YEARS %}<th>{{ year }}</th>{% endfor %}
+                    <th>Комментарий к расчету</th>
+                </tr>
+                {% for metric, label, comment in METRICS_BLOCKS['nq'] %}
+                <tr>
+                    <td>{{ label }}</td>
+                    {% for year in YEARS %}
+                        <td>
+                        {% set val = results_per_year[year][metric] %}
+                        {% if val is number and val >= 1_000_000 %}
+                            {{ (val / 1_000_000)|round(1) }} млн
+                        {% elif val is number and val >= 1_000 %}
+                            {{ (val / 1_000)|round(1) }} тыс
+                        {% else %}
+                            {{ val|round(0) }}
+                        {% endif %}
+                        </td>
+                    {% endfor %}
+                    <td class="comment-col">{{ comment }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+        <!-- 3. Финансовый итог: суммарно -->
+        <div class="results-block">
+            <div class="results-block-title">Финансовые результаты</div>
+            <table class="results-table">
+                <tr>
+                    <th>Показатель</th>
+                    {% for year in YEARS %}<th>{{ year }}</th>{% endfor %}
+                    <th>Комментарий к расчету</th>
+                </tr>
+                {% for metric, label, comment in METRICS_BLOCKS['fin'] %}
+                <tr>
+                    <td>{{ label }}</td>
+                    {% for year in YEARS %}
+                        <td>
+                        {% set val = results_per_year[year][metric] %}
+                        {% if val is number and val >= 1_000_000 %}
+                            {{ (val / 1_000_000)|round(1) }} млн
+                        {% elif val is number and val >= 1_000 %}
+                            {{ (val / 1_000)|round(1) }} тыс
+                        {% else %}
+                            {{ val|round(0) }}
+                        {% endif %}
+                        </td>
+                    {% endfor %}
+                    <td class="comment-col">{{ comment }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
     </div>
-
+    <!-- 5. Возврат инвестиций: доли инвесторов -->
     <div class="card-section">
         <div class="stepper">
             <div class="step">5</div>
@@ -587,7 +657,6 @@
         </table>
     </div>
     {% endif %}
-
     {% if ai_analysis %}
     <div class="swot-block">
         <b>AI-анализ динамики:</b><br>
