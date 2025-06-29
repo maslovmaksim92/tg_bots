@@ -27,6 +27,11 @@
             --block-sep: #e6ebf8;
             --main-contrast: #233344;
             --grey: #a8b6d1;
+            --danger: #fcf1f2;
+            --danger-border: #fa797d;
+            --danger-text: #b93236;
+            --trend-up: #23ad4a;
+            --trend-down: #c44e29;
         }
         html, body {
             min-height: 100%;
@@ -69,6 +74,21 @@
             padding-bottom: 4rem;
             position: relative;
         }
+        .audit-block {
+            background: var(--danger);
+            border: 2px solid var(--danger-border);
+            color: var(--danger-text);
+            border-radius: 11px;
+            padding: 18px 30px 12px 40px;
+            font-size: 1.09em;
+            margin-bottom: 23px;
+            margin-top: 17px;
+            box-shadow: 0 2px 8px #fa797d28;
+            font-weight: 500;
+        }
+        .trend-up { color: var(--trend-up); font-weight: bold;}
+        .trend-down { color: var(--trend-down); font-weight: bold;}
+        .trend-icon { font-size: 1.12em; margin-left: 4px; }
         /* Card/section improvements */
         .card-section {
             background: var(--main-card);
@@ -279,22 +299,39 @@
             box-shadow: 0 1px 16px #e2f7ee;
         }
         .swot-block b, .swot-block strong { color: var(--strong);}
-        /* Button with gradient and animation */
-        button {
-            padding: 15px 38px;
-            font-size: 1.16em;
-            margin-top: 22px;
-            border-radius: 10px;
-            border: none;
-            background: var(--accent-grad);
-            color: #fff;
-            cursor: pointer;
-            box-shadow: 0 2px 12px #bad0fd67;
-            font-weight: 600;
-            letter-spacing: 0.03em;
-            transition: background 0.2s, box-shadow 0.22s, transform 0.09s;
+        /* FIN EXPERT AI */
+        .finexpert-block {
+            background: #f0fbfa;
+            border: 2px solid #2ee3ad;
+            color: #127f52;
+            border-radius: 14px;
+            margin: 30px 0 0 0;
+            padding: 23px 33px;
+            font-size: 1.13em;
+            box-shadow: 0 2px 11px #a2f2d74a;
         }
-        button:hover { background: #345cd4; transform: translateY(-1px) scale(1.02);}
+        .finexpert-block .alert { margin: 0.3em 0 0 1.3em; color: #b93236; }
+        /* Download buttons block */
+        .download-block {
+            margin: 16px 0 18px 0;
+            text-align: right;
+        }
+        .download-btn {
+            display: inline-block;
+            border: none;
+            background: var(--main-accent);
+            color: #fff;
+            padding: 10px 20px;
+            margin-right: 6px;
+            font-size: 1.06em;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 1px 8px #466de326;
+            transition: background 0.18s, box-shadow 0.15s;
+        }
+        .download-btn:hover {
+            background: #345cd4;
+        }
         /* Section divider line */
         .section-divider {
             border: none;
@@ -345,10 +382,70 @@
             .swot-block { font-size: 1em; padding: 17px 10px;}
         }
     </style>
+    <script>
+        // SVG chart for dynamics: generates mini-graph (trendline) for array of values
+        function renderMiniGraph(canvasId, data) {
+            const w = 100, h = 26, p = 5;
+            if (data.length < 2) return;
+            const min = Math.min(...data), max = Math.max(...data);
+            const scale = (v) => h - p - ((v - min) * (h - 2 * p) / ((max-min)||1));
+            let points = data.map((v, i) => `${p + i*(w-2*p)/(data.length-1)},${scale(v)}`).join(" ");
+            document.getElementById(canvasId).innerHTML =
+                `<polyline fill="none" stroke="#466de3" stroke-width="2" points="${points}"/><circle cx="${p}" cy="${scale(data[0])}" r="2" fill="#63a4ff"/><circle cx="${w-p}" cy="${scale(data[data.length-1])}" r="2.5" fill="#208a4d"/>`;
+        }
+        // Download as JSON
+        function downloadJSON(obj, filename) {
+            const a = document.createElement("a");
+            a.href = "data:application/json," + encodeURIComponent(JSON.stringify(obj, null, 2));
+            a.download = filename || "unit_economy.json";
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        }
+        // Download as CSV
+        function downloadCSV(data, filename) {
+            const replacer = (key, value) => value === null ? '' : value;
+            const header = Object.keys(data[0]);
+            let csv = data.map(row => header.map(fieldName =>
+                JSON.stringify(row[fieldName], replacer)).join(','));
+            csv.unshift(header.join(','));
+            let csvStr = csv.join('\r\n');
+            const a = document.createElement("a");
+            a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csvStr);
+            a.download = filename || "unit_economy.csv";
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        }
+        // Theme switcher (light/dark) — если нужно раскомментируй
+        /*
+        function switchTheme() {
+            document.body.classList.toggle("dark-theme");
+        }
+        */
+    </script>
 </head>
 <body>
     <h2>Unit-экономика 2026–2030 (мультигодовой расчет)</h2>
     <div class="container">
+
+    <!-- Блок Audit: сообщения и предупреждения -->
+    {% if audit_messages and audit_messages|length > 0 %}
+    <div class="audit-block">
+        <b>Обнаружены рекомендации/предупреждения:</b>
+        <ul>
+            {% for msg in audit_messages %}
+                <li>{{ msg }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <!-- Download & tools bar (поверх формы) -->
+    <div class="download-block">
+        {% if results_per_year %}
+            <button class="download-btn" type="button" onclick="downloadJSON({{ form|tojson }}, 'input_data.json')">Скачать JSON</button>
+            <button class="download-btn" type="button" onclick="downloadCSV({{ investors_table|tojson }}, 'investors.csv')">Скачать таблицу инвесторов</button>
+        {% endif %}
+        <!-- <button class="download-btn" type="button" onclick="switchTheme()">Сменить тему</button> -->
+    </div>
+
     <form method="post" autocomplete="off">
         <!-- 1. Квалифицированный персонал -->
         <div class="card-section">
@@ -378,7 +475,12 @@
                 <tr>
                     <td>Цена смены, ₽</td>
                     {% for year in YEARS %}
-                        <td><input type="number" min="0" name="{{ year }}_q_price" value="{{ form[year]['q_price'] }}"></td>
+                        <td>
+                            <input type="number" min="0" name="{{ year }}_q_price" value="{{ form[year]['q_price'] }}">
+                            {% if form[year]['q_price'] < 1000 %}
+                                <span class="trend-down trend-icon" title="Подозрительно низкая цена!">⬇</span>
+                            {% endif %}
+                        </td>
                     {% endfor %}
                 </tr>
                 <tr>
@@ -442,7 +544,12 @@
                 <tr>
                     <td>Цена смены, ₽</td>
                     {% for year in YEARS %}
-                        <td><input type="number" min="0" name="{{ year }}_nq_price" value="{{ form[year]['nq_price'] }}"></td>
+                        <td>
+                            <input type="number" min="0" name="{{ year }}_nq_price" value="{{ form[year]['nq_price'] }}">
+                            {% if form[year]['nq_price'] < 700 %}
+                                <span class="trend-down trend-icon" title="Слишком низкая цена!">⬇</span>
+                            {% endif %}
+                        </td>
                     {% endfor %}
                 </tr>
                 <tr>
@@ -500,7 +607,12 @@
                         <br><small>Фонд оплаты труда</small>
                     </td>
                     {% for year in YEARS %}
-                        <td><input type="number" min="0" name="{{ year }}_fot" value="{{ form[year]['fot'] }}"></td>
+                        <td>
+                            <input type="number" min="0" name="{{ year }}_fot" value="{{ form[year]['fot'] }}">
+                            {% if form[year]['fot'] > 2000 %}
+                                <span class="trend-down trend-icon" title="Высокий ФОТ!">⚠️</span>
+                            {% endif %}
+                        </td>
                     {% endfor %}
                 </tr>
                 <tr>
@@ -539,6 +651,22 @@
             <div class="step-label">Основные показатели по годам</div>
         </div>
 
+        <!-- Мини-график динамики чистой прибыли (пример для AI-экспертизы) -->
+        <div style="margin-bottom: 8px;">
+            <b>Динамика чистой прибыли:</b>
+            <svg id="miniGraphNetProfit" width="100" height="26" style="vertical-align:middle; margin-left:13px;"></svg>
+            <script>
+                {% if results_per_year %}
+                var netProfits = [
+                    {% for year in YEARS %}
+                        {{ results_per_year[year]["net_profit"] }},
+                    {% endfor %}
+                ];
+                renderMiniGraph('miniGraphNetProfit', netProfits);
+                {% endif %}
+            </script>
+        </div>
+
         <!-- 1. Производство: квалифицированный персонал -->
         <div class="results-block">
             <div class="results-block-title">Квалифицированный персонал (швеи)</div>
@@ -554,12 +682,15 @@
                     {% for year in YEARS %}
                         <td>
                         {% set val = results_per_year[year][metric] %}
-                        {% if val is number and val >= 1_000_000 %}
-                            {{ (val / 1_000_000)|round(1) }} млн
-                        {% elif val is number and val >= 1_000 %}
-                            {{ (val / 1_000)|round(1) }} тыс
-                        {% else %}
-                            {{ val|round(0) }}
+                        {{ val | humanize_millions }}
+                        {# Динамический тренд по сравнению с прошлым годом #}
+                        {% if loop.index0 > 0 and results_per_year[YEARS[loop.index0]] and results_per_year[YEARS[loop.index0-1]] %}
+                            {% set prev = results_per_year[YEARS[loop.index0-1]][metric] %}
+                            {% if val > prev %}
+                                <span class="trend-up trend-icon" title="Рост по сравнению с прошлым годом">↑</span>
+                            {% elif val < prev %}
+                                <span class="trend-down trend-icon" title="Падение по сравнению с прошлым годом">↓</span>
+                            {% endif %}
                         {% endif %}
                         </td>
                     {% endfor %}
@@ -583,12 +714,14 @@
                     {% for year in YEARS %}
                         <td>
                         {% set val = results_per_year[year][metric] %}
-                        {% if val is number and val >= 1_000_000 %}
-                            {{ (val / 1_000_000)|round(1) }} млн
-                        {% elif val is number and val >= 1_000 %}
-                            {{ (val / 1_000)|round(1) }} тыс
-                        {% else %}
-                            {{ val|round(0) }}
+                        {{ val | humanize_millions }}
+                        {% if loop.index0 > 0 and results_per_year[YEARS[loop.index0]] and results_per_year[YEARS[loop.index0-1]] %}
+                            {% set prev = results_per_year[YEARS[loop.index0-1]][metric] %}
+                            {% if val > prev %}
+                                <span class="trend-up trend-icon" title="Рост по сравнению с прошлым годом">↑</span>
+                            {% elif val < prev %}
+                                <span class="trend-down trend-icon" title="Падение по сравнению с прошлым годом">↓</span>
+                            {% endif %}
                         {% endif %}
                         </td>
                     {% endfor %}
@@ -612,18 +745,43 @@
                     {% for year in YEARS %}
                         <td>
                         {% set val = results_per_year[year][metric] %}
-                        {% if val is number and val >= 1_000_000 %}
-                            {{ (val / 1_000_000)|round(1) }} млн
-                        {% elif val is number and val >= 1_000 %}
-                            {{ (val / 1_000)|round(1) }} тыс
-                        {% else %}
-                            {{ val|round(0) }}
+                        {{ val | humanize_millions }}
+                        {% if loop.index0 > 0 and results_per_year[YEARS[loop.index0]] and results_per_year[YEARS[loop.index0-1]] %}
+                            {% set prev = results_per_year[YEARS[loop.index0-1]][metric] %}
+                            {% if val > prev %}
+                                <span class="trend-up trend-icon" title="Рост по сравнению с прошлым годом">↑</span>
+                            {% elif val < prev %}
+                                <span class="trend-down trend-icon" title="Падение по сравнению с прошлым годом">↓</span>
+                            {% endif %}
                         {% endif %}
                         </td>
                     {% endfor %}
                     <td class="comment-col">{{ comment }}</td>
                 </tr>
                 {% endfor %}
+                {# Вставка NPV, IRR если есть #}
+                {% if results_per_year[YEARS[0]].npv is defined %}
+                <tr>
+                    <td>NPV (чистая приведённая стоимость)</td>
+                    {% for year in YEARS %}
+                        <td>
+                            {{ results_per_year[year].npv | humanize_millions }}
+                        </td>
+                    {% endfor %}
+                    <td class="comment-col">Инвестиционная привлекательность проекта</td>
+                </tr>
+                {% endif %}
+                {% if results_per_year[YEARS[0]].irr is defined %}
+                <tr>
+                    <td>IRR (внутренняя норма доходности)</td>
+                    {% for year in YEARS %}
+                        <td>
+                            {{ (results_per_year[year].irr * 100) | round(2) }}%
+                        </td>
+                    {% endfor %}
+                    <td class="comment-col">Доходность капитала (AI-оценка)</td>
+                </tr>
+                {% endif %}
             </table>
         </div>
     </div>
@@ -644,25 +802,56 @@
                 </tr>
             </thead>
             <tbody>
-                {% for row in investors_table %}
+            {% for inv in investors_table %}
                 <tr>
-                    <td>{{ row.year }}</td>
-                    <td>{{ (row.investor1_share/1_000_000)|round(1) }} млн</td>
-                    <td>{{ (row.investor2_share/1_000_000)|round(1) }} млн</td>
-                    <td>{{ (row.investor3_share/1_000_000)|round(1) }} млн</td>
-                    <td>{{ (row.investor4_share/1_000_000)|round(1) }} млн</td>
+                    <td>{{ inv.year }}</td>
+                    <td>{{ inv.investor1_share | humanize_millions }}</td>
+                    <td>{{ inv.investor2_share | humanize_millions }}</td>
+                    <td>{{ inv.investor3_share | humanize_millions }}</td>
+                    <td>{{ inv.investor4_share | humanize_millions }}</td>
                 </tr>
-                {% endfor %}
+            {% endfor %}
             </tbody>
         </table>
     </div>
     {% endif %}
-    {% if ai_analysis %}
-    <div class="swot-block">
-        <b>AI-анализ динамики:</b><br>
-        {{ ai_analysis | safe }}
+
+    <!-- Финансовая экспертиза AI -->
+    {% if fin_expert %}
+    <div class="finexpert-block">
+        <b>AI-финансовая экспертиза:</b>
+        <ul>
+            {% for t in fin_expert.trend %}
+                <li>{{ t }}</li>
+            {% endfor %}
+        </ul>
+        <b>Ключевое заключение:</b> {{ fin_expert.expert_opinion }}
+        {% if fin_expert.alerts %}
+            <div class="alert">
+                <b>Алерты:</b>
+                <ul>
+                    {% for a in fin_expert.alerts %}
+                        <li>{{ a }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
     </div>
     {% endif %}
+
+    <!-- AI-анализ (GPT, SWOT, улучшения) -->
+    {% if ai_analysis %}
+    <div class="swot-block">
+        <b>AI-анализ:</b><br>
+        <span>{{ ai_analysis|format_ai_analysis|safe }}</span>
     </div>
+    {% endif %}
+
+    <!-- Время ответа -->
+    {% if response_time %}
+        <div style="color:#8195b8; font-size:1.04em; margin-top:10px;">Время обработки: <b>{{ response_time }}</b></div>
+    {% endif %}
+
+    </div> <!-- /container -->
 </body>
 </html>
