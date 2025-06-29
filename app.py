@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from webhook import api_router, bot, WEBHOOK_URL, WEBHOOK_PATH
 from loguru import logger
 from unit_economy.routes import router as unit_economy_router
-from unit_economy.multiyear_routes import router as multiyear_router
+from unit_economy.routes import router as multiyear_router
 
 app = FastAPI()
 
