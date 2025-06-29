@@ -56,30 +56,58 @@ COMMENTS = {
     "operational_profit": "Суммарная опер. прибыль: Опер. прибыль основная + Опер. прибыль доп. смен",
 }
 
-# ==== Новое! Комментарии к мультигодовому расчету ====
+# ==== Комментарии к мультигодовому расчету ====
 COMMENTS_HORIZON = {
-    "q_shifts": "Смены (квалиф.) = Кол-во × дней",
-    "q_revenue": "Выручка (квалиф.) = Смены × цена смены",
-    "q_cost": "Себестоимость (квалиф.) = Смены × себестоимость",
-    "q_extra_shifts": "Смены в доп. сменах (квалиф.) = Кол-во × дней",
-    "q_extra_revenue": "Выручка (доп. смены) = Смены × цена",
-    "q_extra_cost": "Себестоимость (доп. смены) = Смены × себестоимость",
-    "nq_shifts": "Смены (неквалиф.) = Кол-во × дней",
-    "nq_revenue": "Выручка (неквалиф.) = Смены × цена смены",
-    "nq_cost": "Себестоимость (неквалиф.) = Смены × себестоимость",
-    "nq_extra_shifts": "Смены в доп. сменах (неквалиф.) = Кол-во × дней",
-    "nq_extra_revenue": "Выручка (доп. смены) = Смены × цена",
-    "nq_extra_cost": "Себестоимость (доп. смены) = Смены × себестоимость",
+    "q_shifts": "Смены (квалиф.): Кол-во × дней",
+    "q_revenue": "Выручка (квалиф.): Смены × цена смены",
+    "q_cost": "Себестоимость (квалиф.): Смены × себестоимость",
+    "q_extra_shifts": "Смены в доп. сменах (квалиф.): Кол-во × дней",
+    "q_extra_revenue": "Выручка (доп. смены, квалиф.): Смены × цена",
+    "q_extra_cost": "Себестоимость (доп. смены, квалиф.): Смены × себестоимость",
+    "nq_shifts": "Смены (неквалиф.): Кол-во × дней",
+    "nq_revenue": "Выручка (неквалиф.): Смены × цена смены",
+    "nq_cost": "Себестоимость (неквалиф.): Смены × себестоимость",
+    "nq_extra_shifts": "Смены в доп. сменах (неквалиф.): Кол-во × дней",
+    "nq_extra_revenue": "Выручка (доп. смены, неквалиф.): Смены × цена",
+    "nq_extra_cost": "Себестоимость (доп. смены, неквалиф.): Смены × себестоимость",
     "costs_block": "ФОТ×12 + аренда×12 − доход со склада×12",
     "total_revenue": "Суммарная выручка: все выручки",
     "total_cost": "Суммарная себестоимость: все себестоимости + расходы",
     "operational_profit": "Операционная прибыль: выручка − себестоимость − расходы + доходы",
-    "net_profit": "Чистая прибыль = операционная − налоги/инвесторы",
+    "net_profit": "Чистая прибыль: операционная − налоги/инвесторы",
     "investor1_share": "Доля инвестора 1: 50% от чистой прибыли (после НДФЛ 15%)",
     "investor2_share": "Доля инвестора 2: 30% от чистой прибыли (после НДФЛ 15%)",
     "investor3_share": "Доля инвестора 3: 10% от чистой прибыли (после НДФЛ 15%)",
     "investor4_share": "Доля инвестора 4: 10% от чистой прибыли (после НДФЛ 15%)",
 }
+
+METRIC_LABELS = [
+    ("q_shifts", "Смены (квалиф.)"),
+    ("q_revenue", "Выручка (квалиф.)"),
+    ("q_cost", "Себестоимость (квалиф.)"),
+    ("q_extra_shifts", "Смены в доп. сменах (квалиф.)"),
+    ("q_extra_revenue", "Выручка (доп. смены, квалиф.)"),
+    ("q_extra_cost", "Себестоимость (доп. смены, квалиф.)"),
+    ("nq_shifts", "Смены (неквалиф.)"),
+    ("nq_revenue", "Выручка (неквалиф.)"),
+    ("nq_cost", "Себестоимость (неквалиф.)"),
+    ("nq_extra_shifts", "Смены в доп. сменах (неквалиф.)"),
+    ("nq_extra_revenue", "Выручка (доп. смены, неквалиф.)"),
+    ("nq_extra_cost", "Себестоимость (доп. смены, неквалиф.)"),
+    ("costs_block", "Прочие расходы/доходы"),
+    ("total_revenue", "Суммарная выручка"),
+    ("total_cost", "Суммарная себестоимость"),
+    ("operational_profit", "Операционная прибыль до налогов"),
+    ("net_profit", "Чистая прибыль"),
+    ("investor1_share", "Доля инвестора 1 (50%)"),
+    ("investor2_share", "Доля инвестора 2 (30%)"),
+    ("investor3_share", "Доля инвестора 3 (10%)"),
+    ("investor4_share", "Доля инвестора 4 (10%)"),
+]
+
+METRICS_WITH_COMMENTS = [
+    (metric, label, COMMENTS_HORIZON.get(metric, "")) for metric, label in METRIC_LABELS
+]
 
 @router.get("/", response_class=HTMLResponse)
 async def unit_economy_form(request: Request):
@@ -210,14 +238,6 @@ async def unit_economy_result(
 # ========================
 
 YEARS = [2025, 2026, 2027, 2028, 2029, 2030]
-HORIZON_METRICS = [
-    ("operational_profit", "Операционная прибыль до налогов, ₽"),
-    ("net_profit", "Чистая прибыль, ₽"),
-    ("investor1_share", "Доля инвестора 1 (50%, после НДФЛ 15%), ₽"),
-    ("investor2_share", "Доля инвестора 2 (30%, после НДФЛ 15%), ₽"),
-    ("investor3_share", "Доля инвестора 3 (10%, после НДФЛ 15%), ₽"),
-    ("investor4_share", "Доля инвестора 4 (10%, после НДФЛ 15%), ₽"),
-]
 
 def get_multiyear_default_form():
     BASE = {
@@ -310,7 +330,7 @@ async def unit_economy_multiyear_form(request: Request):
             "request": request,
             "form": form,
             "YEARS": YEARS,
-            "HORIZON_METRICS": HORIZON_METRICS,
+            "METRICS_WITH_COMMENTS": METRICS_WITH_COMMENTS,
             "COMMENTS_HORIZON": COMMENTS_HORIZON,
         }
     )
@@ -331,10 +351,9 @@ async def unit_economy_multiyear_result(request: Request):
     results_per_year = {year: calc_one_year(form[year]) for year in YEARS}
 
     total_by_metric = {}
-    for metric, _ in HORIZON_METRICS:
+    for metric, _, _ in METRICS_WITH_COMMENTS:
         total_by_metric[metric] = sum(results_per_year[year][metric] for year in YEARS)
 
-    # AI-анализ динамики
     ai_analysis = ai_analyze_unit_economy_multiyear(
         [dict(year=year, **results_per_year[year]) for year in YEARS], total_by_metric
     )
@@ -345,7 +364,7 @@ async def unit_economy_multiyear_result(request: Request):
             "request": request,
             "form": form,
             "YEARS": YEARS,
-            "HORIZON_METRICS": HORIZON_METRICS,
+            "METRICS_WITH_COMMENTS": METRICS_WITH_COMMENTS,
             "results_per_year": results_per_year,
             "total_by_metric": total_by_metric,
             "ai_analysis": ai_analysis,
