@@ -19,6 +19,7 @@
         .btn-main { padding: 7px 20px; font-size: 1.1em; margin-top: 10px; border-radius: 8px; border: none; background: #466de3; color: #fff; cursor: pointer; }
         .btn-main:hover { background: #2a4dbe; }
         .swot-block { background: #faf7e5; padding: 20px; border-radius: 12px; margin-top: 22px; }
+        .explain { font-size: 0.9em; color: #888; }
     </style>
 </head>
 <body>
@@ -33,119 +34,119 @@
             </tr>
             <tr class="section"><td colspan="{{ YEARS|length + 1 }}">Квалифицированный персонал (швеи)</td></tr>
             <tr>
-                <td>Кол-во (чел)<br><small>Вводится вручную</small></td>
+                <td>Кол-во (чел)<br><small class="explain">Вводится вручную</small></td>
                 {% for year in YEARS %}
-                    <td><input type="number" min="0" step="1" name="{{ year }}_q_count" value="{{ form[year]['q_count'] }}" required></td>
+                    <td><input type="number" min="1" max="100" step="1" name="{{ year }}_q_count" value="{{ form[year]['q_count'] }}" required></td>
                 {% endfor %}
             </tr>
             <tr>
-                <td>Рабочих дней в году<br><small>Вводится вручную</small></td>
+                <td>Рабочих дней в году<br><small class="explain">Вводится вручную</small></td>
                 {% for year in YEARS %}
-                    <td><input type="number" min="0" step="1" name="{{ year }}_q_days" value="{{ form[year]['q_days'] }}"></td>
+                    <td><input type="number" min="1" max="366" step="1" name="{{ year }}_q_days" value="{{ form[year]['q_days'] }}"></td>
                 {% endfor %}
             </tr>
             <tr>
-                <td>Цена смены, ₽<br><small>Вводится вручную</small></td>
+                <td>Цена смены, ₽<br><small class="explain">Выручка = Кол-во × дней × цена</small></td>
                 {% for year in YEARS %}
-                    <td><input type="number" min="0" step="10" name="{{ year }}_q_price" value="{{ form[year]['q_price'] }}"></td>
+                    <td><input type="number" min="1000" max="10000" step="10" name="{{ year }}_q_price" value="{{ form[year]['q_price'] }}"></td>
                 {% endfor %}
             </tr>
             <tr>
-                <td>Себестоимость смены, ₽<br><small>Вводится вручную</small></td>
+                <td>Себестоимость смены, ₽<br><small class="explain">Расход = Кол-во × дней × себестоимость</small></td>
                 {% for year in YEARS %}
-                    <td><input type="number" min="0" step="10" name="{{ year }}_q_cost" value="{{ form[year]['q_cost'] }}"></td>
+                    <td><input type="number" min="1000" max="10000" step="10" name="{{ year }}_q_cost" value="{{ form[year]['q_cost'] }}"></td>
                 {% endfor %}
             </tr>
             <tr>
-                <td>Доп. смены (чел)<br><small>Вводится вручную</small></td>
+                <td>Доп. смены (чел)<br><small class="explain">Кол-во в доп. сменах</small></td>
                 {% for year in YEARS %}
-                    <td><input type="number" min="0" step="1" name="{{ year }}_q_extra_count" value="{{ form[year]['q_extra_count'] }}"></td>
+                    <td><input type="number" min="0" max="50" step="1" name="{{ year }}_q_extra_count" value="{{ form[year]['q_extra_count'] }}"></td>
                 {% endfor %}
             </tr>
             <tr>
-                <td>Дней в доп. сменах<br><small>Вводится вручную</small></td>
+                <td>Дней в доп. сменах<br><small class="explain">Раб. дней на доп. смену</small></td>
                 {% for year in YEARS %}
-                    <td><input type="number" min="0" step="1" name="{{ year }}_q_extra_days" value="{{ form[year]['q_extra_days'] }}"></td>
+                    <td><input type="number" min="0" max="100" step="1" name="{{ year }}_q_extra_days" value="{{ form[year]['q_extra_days'] }}"></td>
                 {% endfor %}
             </tr>
             <tr>
-                <td>Цена доп. смены, ₽<br><small>Вводится вручную</small></td>
+                <td>Цена доп. смены, ₽<br><small class="explain">Выручка (доп) = Кол-во × дней × цена</small></td>
                 {% for year in YEARS %}
-                    <td><input type="number" min="0" step="10" name="{{ year }}_q_extra_price" value="{{ form[year]['q_extra_price'] }}"></td>
+                    <td><input type="number" min="1000" max="10000" step="10" name="{{ year }}_q_extra_price" value="{{ form[year]['q_extra_price'] }}"></td>
                 {% endfor %}
             </tr>
             <tr>
-                <td>Себест. доп. смены, ₽<br><small>Вводится вручную</small></td>
+                <td>Себест. доп. смены, ₽<br><small class="explain">Расход (доп) = Кол-во × дней × себестоимость</small></td>
                 {% for year in YEARS %}
-                    <td><input type="number" min="0" step="10" name="{{ year }}_q_extra_cost" value="{{ form[year]['q_extra_cost'] }}"></td>
+                    <td><input type="number" min="1000" max="10000" step="10" name="{{ year }}_q_extra_cost" value="{{ form[year]['q_extra_cost'] }}"></td>
                 {% endfor %}
             </tr>
             <tr class="section"><td colspan="{{ YEARS|length + 1 }}">Неквалифицированный персонал (уборщицы)</td></tr>
             <tr>
-                <td>Кол-во (чел)<br><small>Вводится вручную</small></td>
+                <td>Кол-во (чел)<br><small class="explain">Вводится вручную</small></td>
                 {% for year in YEARS %}
-                    <td><input type="number" min="0" step="1" name="{{ year }}_nq_count" value="{{ form[year]['nq_count'] }}"></td>
+                    <td><input type="number" min="1" max="100" step="1" name="{{ year }}_nq_count" value="{{ form[year]['nq_count'] }}"></td>
                 {% endfor %}
             </tr>
             <tr>
-                <td>Рабочих дней в году<br><small>Вводится вручную</small></td>
+                <td>Рабочих дней в году<br><small class="explain">Вводится вручную</small></td>
                 {% for year in YEARS %}
-                    <td><input type="number" min="0" step="1" name="{{ year }}_nq_days" value="{{ form[year]['nq_days'] }}"></td>
+                    <td><input type="number" min="1" max="366" step="1" name="{{ year }}_nq_days" value="{{ form[year]['nq_days'] }}"></td>
                 {% endfor %}
             </tr>
             <tr>
-                <td>Цена смены, ₽<br><small>Вводится вручную</small></td>
+                <td>Цена смены, ₽<br><small class="explain">Выручка = Кол-во × дней × цена</small></td>
                 {% for year in YEARS %}
-                    <td><input type="number" min="0" step="10" name="{{ year }}_nq_price" value="{{ form[year]['nq_price'] }}"></td>
+                    <td><input type="number" min="1000" max="10000" step="10" name="{{ year }}_nq_price" value="{{ form[year]['nq_price'] }}"></td>
                 {% endfor %}
             </tr>
             <tr>
-                <td>Себестоимость смены, ₽<br><small>Вводится вручную</small></td>
+                <td>Себестоимость смены, ₽<br><small class="explain">Расход = Кол-во × дней × себестоимость</small></td>
                 {% for year in YEARS %}
-                    <td><input type="number" min="0" step="10" name="{{ year }}_nq_cost" value="{{ form[year]['nq_cost'] }}"></td>
+                    <td><input type="number" min="1000" max="10000" step="10" name="{{ year }}_nq_cost" value="{{ form[year]['nq_cost'] }}"></td>
                 {% endfor %}
             </tr>
             <tr>
-                <td>Доп. смены (чел)<br><small>Вводится вручную</small></td>
+                <td>Доп. смены (чел)<br><small class="explain">Кол-во в доп. сменах</small></td>
                 {% for year in YEARS %}
-                    <td><input type="number" min="0" step="1" name="{{ year }}_nq_extra_count" value="{{ form[year]['nq_extra_count'] }}"></td>
+                    <td><input type="number" min="0" max="50" step="1" name="{{ year }}_nq_extra_count" value="{{ form[year]['nq_extra_count'] }}"></td>
                 {% endfor %}
             </tr>
             <tr>
-                <td>Дней в доп. сменах<br><small>Вводится вручную</small></td>
+                <td>Дней в доп. сменах<br><small class="explain">Раб. дней на доп. смену</small></td>
                 {% for year in YEARS %}
-                    <td><input type="number" min="0" step="1" name="{{ year }}_nq_extra_days" value="{{ form[year]['nq_extra_days'] }}"></td>
+                    <td><input type="number" min="0" max="100" step="1" name="{{ year }}_nq_extra_days" value="{{ form[year]['nq_extra_days'] }}"></td>
                 {% endfor %}
             </tr>
             <tr>
-                <td>Цена доп. смены, ₽<br><small>Вводится вручную</small></td>
+                <td>Цена доп. смены, ₽<br><small class="explain">Выручка (доп) = Кол-во × дней × цена</small></td>
                 {% for year in YEARS %}
-                    <td><input type="number" min="0" step="10" name="{{ year }}_nq_extra_price" value="{{ form[year]['nq_extra_price'] }}"></td>
+                    <td><input type="number" min="1000" max="10000" step="10" name="{{ year }}_nq_extra_price" value="{{ form[year]['nq_extra_price'] }}"></td>
                 {% endfor %}
             </tr>
             <tr>
-                <td>Себест. доп. смены, ₽<br><small>Вводится вручную</small></td>
+                <td>Себест. доп. смены, ₽<br><small class="explain">Расход (доп) = Кол-во × дней × себестоимость</small></td>
                 {% for year in YEARS %}
-                    <td><input type="number" min="0" step="10" name="{{ year }}_nq_extra_cost" value="{{ form[year]['nq_extra_cost'] }}"></td>
+                    <td><input type="number" min="1000" max="10000" step="10" name="{{ year }}_nq_extra_cost" value="{{ form[year]['nq_extra_cost'] }}"></td>
                 {% endfor %}
             </tr>
             <tr class="section"><td colspan="{{ YEARS|length + 1 }}">Прочие расходы и доходы</td></tr>
             <tr>
-                <td>ФОТ, тыс. ₽ в мес.<br><small>Автоиндексация 10%/год</small></td>
+                <td>ФОТ, тыс. ₽ в мес.<br><small class="explain">Автоиндексация 10%/год. ФОТ = ФОТ × 12 мес</small></td>
                 {% for year in YEARS %}
-                    <td><input type="number" min="0" step="100" name="{{ year }}_fot" value="{{ form[year]['fot'] }}"></td>
+                    <td><input type="number" min="0" max="10000" step="100" name="{{ year }}_fot" value="{{ form[year]['fot'] }}"></td>
                 {% endfor %}
             </tr>
             <tr>
-                <td>Аренда офиса, тыс. ₽ в мес.<br><small>Автоиндексация 10%/год</small></td>
+                <td>Аренда офиса, тыс. ₽ в мес.<br><small class="explain">Автоиндексация 10%/год. Аренда = аренда × 12 мес</small></td>
                 {% for year in YEARS %}
-                    <td><input type="number" min="0" step="10" name="{{ year }}_office_rent" value="{{ form[year]['office_rent'] }}"></td>
+                    <td><input type="number" min="0" max="10000" step="10" name="{{ year }}_office_rent" value="{{ form[year]['office_rent'] }}"></td>
                 {% endfor %}
             </tr>
             <tr>
-                <td>Доход от склада, тыс. ₽ в мес.<br><small>Автоиндексация 10%/год</small></td>
+                <td>Доход от склада, тыс. ₽ в мес.<br><small class="explain">Автоиндексация 10%/год. Доход = доход × 12 мес (увеличивает прибыль)</small></td>
                 {% for year in YEARS %}
-                    <td><input type="number" min="0" step="10" name="{{ year }}_warehouse_income" value="{{ form[year]['warehouse_income'] }}"></td>
+                    <td><input type="number" min="0" max="10000" step="10" name="{{ year }}_warehouse_income" value="{{ form[year]['warehouse_income'] }}"></td>
                 {% endfor %}
             </tr>
         </table>
