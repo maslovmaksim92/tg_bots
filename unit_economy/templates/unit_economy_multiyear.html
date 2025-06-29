@@ -3,56 +3,83 @@
 <head>
     <meta charset="UTF-8">
     <title>Unit-экономика 2026–2030 (мультигодовой расчет)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Google Fonts: Inter + Roboto Slab для заголовков -->
+    <link href="https://fonts.googleapis.com/css?family=Inter:400,500,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Roboto+Slab:700&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Inter', Arial, 'Segoe UI', sans-serif;
+        :root {
+            --main-bg: #f3f7fa;
+            --main-card: #fff;
+            --main-accent: #466de3;
+            --main-shadow: 0 4px 24px #dae5fa70;
+            --main-radius: 17px;
+            --accent-grad: linear-gradient(90deg, #466de3 0%, #63a4ff 100%);
+            --primary: #466de3;
+            --table-header: #eaf1fa;
+            --table-even: #f5fbff;
+            --table-odd: #f9fcff;
+            --success: #d9fbe0;
+            --hover: #e8f6fd;
+            --strong: #208a4d;
+            --swot: #f4fcf7;
+        }
+        html, body {
+            min-height: 100%;
             margin: 0;
-            min-height: 100vh;
-            background: linear-gradient(135deg, #f4f8fd 0%, #e7f0fc 100%);
+            background: var(--main-bg);
+            font-family: 'Inter', Arial, sans-serif;
+            color: #233344;
+            letter-spacing: 0.01em;
         }
         h2 {
-            margin: 2rem 0 1.2rem 2rem;
-            font-weight: 800;
-            letter-spacing: 0.01em;
-            color: #284674;
+            margin: 2.2rem 0 1.3rem 0;
+            font-family: 'Roboto Slab', serif;
+            font-weight: 700;
+            color: var(--main-accent);
+            font-size: 2.15rem;
+            letter-spacing: 0.02em;
+            text-align: left;
         }
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            padding-bottom: 3rem;
+            padding-bottom: 4rem;
         }
         .card-section {
-            background: #fff;
-            border-radius: 18px;
-            box-shadow: 0 2px 22px #e4e7f8;
-            margin: 2rem 0 2rem 0;
-            padding: 2rem 2.5rem 2rem 2.5rem;
-            transition: box-shadow 0.18s;
-        }
-        .card-section:hover {
-            box-shadow: 0 5px 26px #d0e3fb;
+            background: var(--main-card);
+            border-radius: var(--main-radius);
+            box-shadow: var(--main-shadow);
+            margin: 2.4rem 0 2.4rem 0;
+            padding: 2rem 2.7rem 2.2rem 2.7rem;
+            position: relative;
+            transition: box-shadow 0.25s;
+            border: 1px solid #e5eefe;
         }
         .card-section h3 {
+            font-family: 'Roboto Slab', serif;
             margin-top: 0;
-            margin-bottom: 1.2em;
-            font-weight: 700;
-            color: #2267b1;
-            letter-spacing: 0.02em;
-        }
-        .horizon-table, .results-table, .investor-table {
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: 0 0.5px 7px #eef5ff;
+            margin-bottom: 1.15em;
+            color: #2a3a6d;
+            font-size: 1.25rem;
+            letter-spacing: 0.03em;
         }
         .horizon-table th, .horizon-table td {
-            text-align: center;
-            padding: 8px 7px;
+            text-align: center; 
+            padding: 9px 6px; 
+        }
+        .horizon-table {
+            border-radius: 12px;
+            overflow: hidden;
+            width: 100%;
+            margin-bottom: 1.1rem;
+            box-shadow: 0 1px 7px #e0ecfa42;
         }
         .horizon-table th {
-            background: #eaf1fa;
-            font-weight: 700;
-            letter-spacing: 0.04em;
-            position: sticky; top: 0; z-index: 2;
+            background: var(--table-header);
+            font-weight: 600;
+            color: #355fa6;
+            font-size: 1.01em;
         }
         .horizon-table tr.section td {
             background: #e9f7fa;
@@ -60,81 +87,103 @@
             font-size: 1.10em;
             color: #217297;
         }
+        .horizon-table tr:nth-child(even) { background: var(--table-even); }
+        .horizon-table tr:nth-child(odd) { background: var(--table-odd); }
         .horizon-table input {
-            width: 78px;
+            width: 88px;
             text-align: right;
             border-radius: 9px;
             border: 1.5px solid #c4d4f7;
-            padding: 5px 7px;
-            font-size: 1em;
+            padding: 5px 8px;
+            font-size: 1.07em;
             background: #f8fbff;
-            transition: border .18s, box-shadow .18s;
-            box-shadow: 0 0.5px 2px #e4e4f8;
+            box-shadow: 0 1px 5px #e7eefc38;
+            transition: border .17s, box-shadow .2s;
         }
-        .horizon-table input:focus {
-            border: 1.9px solid #4e89f7;
-            background: #eef7ff;
-            box-shadow: 0 0 0 2px #cde2fc;
+        .horizon-table input:focus { 
+            border: 2px solid var(--main-accent);
+            background: #f0f6ff;
+            outline: none;
+            box-shadow: 0 0 0 2px #bcd8ff2b;
         }
-        .horizon-table small {
-            color: #a3a3a3;
-            font-size: 0.92em;
-            letter-spacing: 0.01em;
+        .horizon-table input[type="number"]::-webkit-inner-spin-button,
+        .horizon-table input[type="number"]::-webkit-outer-spin-button { 
+            -webkit-appearance: none;
+            margin: 0; 
         }
+        .horizon-table small { color: #8b8b8b; font-size: 0.93em; }
+        /* Add gentle row hover for better UX */
+        .horizon-table tr:hover td { background: #f0f8ff; }
 
+        /* Enhanced results table */
         .results-table {
-            margin-top: 28px;
-            border-collapse: collapse;
-            min-width: 940px;
-            font-size: 1.06em;
+            margin-top: 32px;
+            border-collapse: separate;
+            border-spacing: 0;
+            width: 100%;
+            border-radius: 14px;
+            overflow: hidden;
+            background: var(--main-card);
+            box-shadow: 0 2px 12px #e9effa63;
         }
         .results-table th, .results-table td {
-            border: 1px solid #e2eefa;
-            padding: 10px 13px;
-            background: #fff;
-            transition: background 0.13s;
+            border: none;
+            padding: 12px 10px;
+            font-size: 1.08em;
         }
         .results-table th {
-            background: #eaf2fd;
+            background: linear-gradient(90deg,#e9f0fb 0%,#d9ebfa 100%);
+            color: #2954a2;
             font-weight: 700;
-            letter-spacing: 0.03em;
-        }
-        .results-table tr:nth-child(even) { background: #f7fbff; }
-        .results-table tr:hover td {
-            background: #e9f4ff !important;
-        }
-        .results-table td.comment-col {
-            text-align: left;
-            color: #8a8a8a;
-            min-width: 170px;
-            font-size: 0.98em;
-            background: #fcfdfb;
-        }
-        .results-table tr.tax-row td {
-            background: #fdfbe9 !important;
-            color: #98882b;
-            font-weight: 600;
-        }
-        .results-table tr.net-profit-row td {
-            background: #e7f8eb !important;
-            font-weight: bold;
-            color: #218a56;
-            position: relative;
-        }
-        .results-table tr.net-profit-row td:first-child:before {
-            content: "💸";
-            margin-right: 8px;
-            vertical-align: middle;
-        }
-
-        .investor-table th {
-            background: linear-gradient(90deg, #e7fbeb 90%, #d0f3eb 100%);
-            font-weight: 600;
+            font-size: 1.07em;
             letter-spacing: 0.02em;
         }
+        .results-table td {
+            border-bottom: 1px solid #e9edfa;
+        }
+        .results-table tr:last-child td {
+            background: var(--success);
+            font-weight: bold;
+        }
+        .results-table tr:nth-child(even) {
+            background: #f9fcff;
+        }
+        .results-table tr:nth-child(odd) {
+            background: #f4f9ff;
+        }
+        .results-table tr:hover td {
+            background: #eaf5ff !important;
+            transition: background 0.15s;
+        }
+        .results-table td.comment-col {
+            color: #7489a8;
+            font-size: 0.99em;
+            min-width: 142px;
+            text-align: left;
+        }
+        /* Investor table styling */
+        .investor-table {
+            margin-top: 35px;
+            border-radius: 13px;
+            overflow: hidden;
+            border-collapse: separate;
+            border-spacing: 0;
+            width: 100%;
+            box-shadow: 0 1px 11px #e0f6ed6c;
+        }
+        .investor-table th {
+            background: linear-gradient(90deg,#dbfbe7 0%,#c8f1fa 100%);
+            font-weight: 700;
+            color: #217297;
+            padding: 13px 0;
+            letter-spacing: 0.015em;
+        }
         .investor-table td {
-            background: #f7fbfd;
-            font-weight: 500;
+            background: #f8fbfd;
+            font-weight: 600;
+            font-size: 1.07em;
+            color: #28574d;
+            border-bottom: 1px solid #e0eee4;
         }
         .investor-table tr.total-row td {
             background: #eaf6e9;
@@ -143,49 +192,148 @@
         .investor-table tr:nth-child(even) {
             background: #f3faf7;
         }
-        .investor-table tr:hover td {
-            background: #e4f4ea !important;
-        }
+        .investor-table tr:hover td { background: #e3fff0 !important;}
         .swot-block {
-            border: 1.5px solid #5ebf7b;
-            background: #f8fff9;
-            border-radius: 13px;
-            padding: 25px 38px 22px 38px;
+            border: 2px solid var(--strong);
+            background: var(--swot);
+            border-radius: 15px;
+            padding: 28px 33px;
             margin-top: 36px;
-            font-size: 1.15em;
-            box-shadow: 0 1px 14px #f0f6f4;
+            font-size: 1.19em;
+            box-shadow: 0 1px 16px #e2f7ee;
         }
         .swot-block b, .swot-block strong {
-            color: #208a4d;
-            font-weight: 700;
+            color: var(--strong);
         }
         button {
-            padding: 16px 44px;
-            font-size: 1.18em;
-            margin-top: 19px;
-            border-radius: 11px;
+            padding: 15px 38px;
+            font-size: 1.16em;
+            margin-top: 24px;
+            border-radius: 9px;
             border: none;
-            background: linear-gradient(95deg, #466de3 40%, #2353e8 100%);
+            background: var(--accent-grad);
             color: #fff;
             cursor: pointer;
-            box-shadow: 0 2px 13px #c3d5fa;
+            box-shadow: 0 2px 12px #bad0fd67;
             font-weight: 600;
-            transition: background 0.2s, box-shadow .15s, transform .12s;
+            letter-spacing: 0.03em;
+            transition: background 0.2s, box-shadow 0.22s, transform 0.1s;
         }
-        button:hover {
-            background: linear-gradient(95deg, #294bb6 40%, #2549b3 100%);
-            box-shadow: 0 7px 32px #b7cfff;
-            transform: translateY(-2px) scale(1.035);
+        button:hover { background: #345cd4; transform: translateY(-1px) scale(1.02);}
+        /* Stepper for section navigation */
+        .stepper {
+            display: flex; align-items: center;
+            margin: 1.7rem 0 1.2rem 0;
+        }
+        .step {
+            width: 30px; height: 30px;
+            border-radius: 50%;
+            background: var(--main-accent);
+            color: #fff;
+            font-weight: 700;
+            margin-right: 16px;
+            text-align: center; line-height: 30px;
+            font-size: 1.08em;
+            box-shadow: 0 2px 8px #bad0fd40;
+        }
+        .step-label {
+            font-size: 1.03em;
+            color: #355fa6;
+            margin-right: 22px;
+            letter-spacing: 0.01em;
+        }
+        /* Animation for card entrance */
+        .card-section { animation: cardIn 0.85s cubic-bezier(.38,.2,.18,1.07);}
+        @keyframes cardIn {
+            from { opacity: 0; transform: translateY(50px);}
+            to { opacity: 1; transform: translateY(0);}
+        }
+        /* Gradient underline for h2 */
+        h2::after {
+            content: '';
+            display: block;
+            width: 120px;
+            height: 4px;
+            margin-top: 9px;
+            border-radius: 8px;
+            background: var(--accent-grad);
+        }
+        /* Responsive + mobile */
+        @media (max-width: 1200px) {
+            .container { max-width: 99vw; }
         }
         @media (max-width: 900px) {
-            .horizon-table, .results-table, .investor-table { font-size: 0.97em; min-width: 680px; }
+            h2 { font-size: 1.35rem; }
+            .horizon-table, .results-table, .investor-table { font-size: 0.98em; min-width: 540px; }
             .card-section { padding: 1rem 0.3rem 1rem 0.5rem; }
-            h2 { font-size: 1.13em; }
+            .swot-block { font-size: 1em; padding: 18px 12px;}
         }
-        @media (max-width: 600px) {
-            .container { padding: 0 3vw; }
-            .card-section { padding: 1rem 0.2rem 1rem 0.2rem; }
-            .horizon-table, .results-table, .investor-table { min-width: 400px; font-size: 0.93em;}
+        /* Tooltip help icon for table headers */
+        .info-icon {
+            display: inline-block;
+            background: #eff5ff;
+            color: var(--main-accent);
+            border-radius: 50%;
+            width: 18px; height: 18px;
+            text-align: center;
+            font-size: 0.9em;
+            font-weight: 900;
+            margin-left: 4px;
+            cursor: pointer;
+            position: relative;
+            transition: background 0.18s;
+        }
+        .info-icon:hover { background: #d7ebff; }
+        .tooltip {
+            display: none;
+            position: absolute;
+            left: 25px; top: -8px;
+            z-index: 9;
+            background: #fff;
+            color: #19324d;
+            font-size: 0.95em;
+            border: 1px solid #c0d0e7;
+            border-radius: 7px;
+            padding: 8px 13px;
+            box-shadow: 0 4px 16px #bad0fd45;
+            min-width: 150px;
+        }
+        .info-icon:hover .tooltip { display: block;}
+        /* Faint gradient border on section */
+        .card-section {
+            border: 1.5px solid transparent;
+            background-clip: padding-box;
+            box-shadow: 0 2px 18px #dae5fa50;
+        }
+        .card-section:hover {
+            border: 1.5px solid #bbd0f8;
+            box-shadow: 0 5px 26px #e6f1fc88;
+        }
+        /* Table cell highlight on edit */
+        .horizon-table td:focus-within, .results-table td:focus-within {
+            background: #e0f1ff !important;
+            transition: background 0.1s;
+        }
+        /* Section separator line */
+        .section-divider {
+            border: none;
+            border-top: 1.5px solid #e8eefd;
+            margin: 32px 0 28px 0;
+        }
+        /* Fancy scrollbar */
+        ::-webkit-scrollbar { width: 9px; background: #eaf1fa;}
+        ::-webkit-scrollbar-thumb { background: #cbe3ff; border-radius: 7px;}
+        ::selection { background: #b3cefa; color: #fff;}
+        /* Table sticky headers for large tables */
+        .results-table th, .investor-table th {
+            position: sticky;
+            top: 0; z-index: 2;
+        }
+        /* Fade in on load */
+        body { animation: fadeBody 0.88s;}
+        @keyframes fadeBody {
+            from { opacity: 0;}
+            to { opacity: 1;}
         }
     </style>
 </head>
@@ -193,13 +341,193 @@
     <h2>Unit-экономика 2026–2030 (мультигодовой расчет)</h2>
     <div class="container">
     <form method="post" autocomplete="off">
-        <!-- Все блоки ввода как раньше (оставь без изменений) -->
-        {{ super() if super }}
+        <div class="card-section">
+            <div class="stepper">
+                <div class="step">1</div>
+                <div class="step-label">Квалифицированный персонал (швеи)</div>
+            </div>
+            <table class="horizon-table" border="1">
+                <tr>
+                    <th>Параметр / Год</th>
+                    {% for year in YEARS %}
+                        <th>{{ year }}</th>
+                    {% endfor %}
+                </tr>
+                <!-- ... все поля швеи ... -->
+                <tr>
+                    <td>Кол-во (чел)<br><small>Вводится вручную</small></td>
+                    {% for year in YEARS %}
+                        <td><input type="number" min="0" name="{{ year }}_q_count" value="{{ form[year]['q_count'] }}"></td>
+                    {% endfor %}
+                </tr>
+                <tr>
+                    <td>Рабочих дней в году</td>
+                    {% for year in YEARS %}
+                        <td><input type="number" min="0" name="{{ year }}_q_days" value="{{ form[year]['q_days'] }}"></td>
+                    {% endfor %}
+                </tr>
+                <tr>
+                    <td>Цена смены, ₽</td>
+                    {% for year in YEARS %}
+                        <td><input type="number" min="0" name="{{ year }}_q_price" value="{{ form[year]['q_price'] }}"></td>
+                    {% endfor %}
+                </tr>
+                <tr>
+                    <td>Себестоимость смены, ₽</td>
+                    {% for year in YEARS %}
+                        <td><input type="number" min="0" name="{{ year }}_q_cost" value="{{ form[year]['q_cost'] }}"></td>
+                    {% endfor %}
+                </tr>
+                <tr>
+                    <td>Доп. смены (чел)</td>
+                    {% for year in YEARS %}
+                        <td><input type="number" min="0" name="{{ year }}_q_extra_count" value="{{ form[year]['q_extra_count'] }}"></td>
+                    {% endfor %}
+                </tr>
+                <tr>
+                    <td>Дней в доп. сменах</td>
+                    {% for year in YEARS %}
+                        <td><input type="number" min="0" name="{{ year }}_q_extra_days" value="{{ form[year]['q_extra_days'] }}"></td>
+                    {% endfor %}
+                </tr>
+                <tr>
+                    <td>Цена доп. смены, ₽</td>
+                    {% for year in YEARS %}
+                        <td><input type="number" min="0" name="{{ year }}_q_extra_price" value="{{ form[year]['q_extra_price'] }}"></td>
+                    {% endfor %}
+                </tr>
+                <tr>
+                    <td>Себест. доп. смены, ₽</td>
+                    {% for year in YEARS %}
+                        <td><input type="number" min="0" name="{{ year }}_q_extra_cost" value="{{ form[year]['q_extra_cost'] }}"></td>
+                    {% endfor %}
+                </tr>
+            </table>
+        </div>
+        <hr class="section-divider">
+        <div class="card-section">
+            <div class="stepper">
+                <div class="step">2</div>
+                <div class="step-label">Неквалифицированный персонал (уборщицы)</div>
+            </div>
+            <table class="horizon-table" border="1">
+                <tr>
+                    <th>Параметр / Год</th>
+                    {% for year in YEARS %}
+                        <th>{{ year }}</th>
+                    {% endfor %}
+                </tr>
+                <!-- ... все поля уборщицы ... -->
+                <tr>
+                    <td>Кол-во (чел)</td>
+                    {% for year in YEARS %}
+                        <td><input type="number" min="0" name="{{ year }}_nq_count" value="{{ form[year]['nq_count'] }}"></td>
+                    {% endfor %}
+                </tr>
+                <tr>
+                    <td>Рабочих дней в году</td>
+                    {% for year in YEARS %}
+                        <td><input type="number" min="0" name="{{ year }}_nq_days" value="{{ form[year]['nq_days'] }}"></td>
+                    {% endfor %}
+                </tr>
+                <tr>
+                    <td>Цена смены, ₽</td>
+                    {% for year in YEARS %}
+                        <td><input type="number" min="0" name="{{ year }}_nq_price" value="{{ form[year]['nq_price'] }}"></td>
+                    {% endfor %}
+                </tr>
+                <tr>
+                    <td>Себестоимость смены, ₽</td>
+                    {% for year in YEARS %}
+                        <td><input type="number" min="0" name="{{ year }}_nq_cost" value="{{ form[year]['nq_cost'] }}"></td>
+                    {% endfor %}
+                </tr>
+                <tr>
+                    <td>Доп. смены (чел)</td>
+                    {% for year in YEARS %}
+                        <td><input type="number" min="0" name="{{ year }}_nq_extra_count" value="{{ form[year]['nq_extra_count'] }}"></td>
+                    {% endfor %}
+                </tr>
+                <tr>
+                    <td>Дней в доп. сменах</td>
+                    {% for year in YEARS %}
+                        <td><input type="number" min="0" name="{{ year }}_nq_extra_days" value="{{ form[year]['nq_extra_days'] }}"></td>
+                    {% endfor %}
+                </tr>
+                <tr>
+                    <td>Цена доп. смены, ₽</td>
+                    {% for year in YEARS %}
+                        <td><input type="number" min="0" name="{{ year }}_nq_extra_price" value="{{ form[year]['nq_extra_price'] }}"></td>
+                    {% endfor %}
+                </tr>
+                <tr>
+                    <td>Себест. доп. смены, ₽</td>
+                    {% for year in YEARS %}
+                        <td><input type="number" min="0" name="{{ year }}_nq_extra_cost" value="{{ form[year]['nq_extra_cost'] }}"></td>
+                    {% endfor %}
+                </tr>
+            </table>
+        </div>
+        <hr class="section-divider">
+        <div class="card-section">
+            <div class="stepper">
+                <div class="step">3</div>
+                <div class="step-label">Прочие расходы и доходы</div>
+            </div>
+            <table class="horizon-table" border="1">
+                <tr>
+                    <th>Параметр / Год</th>
+                    {% for year in YEARS %}
+                        <th>{{ year }}</th>
+                    {% endfor %}
+                </tr>
+                <tr>
+                    <td>
+                        ФОТ, тыс. ₽ в мес. 
+                        <span class="info-icon" tabindex="0">?
+                            <span class="tooltip">ФОТ × 12 мес</span>
+                        </span>
+                        <br><small>Фонд оплаты труда</small>
+                    </td>
+                    {% for year in YEARS %}
+                        <td><input type="number" min="0" name="{{ year }}_fot" value="{{ form[year]['fot'] }}"></td>
+                    {% endfor %}
+                </tr>
+                <tr>
+                    <td>
+                        Аренда офиса, тыс. ₽ в мес.
+                        <span class="info-icon" tabindex="0">?
+                            <span class="tooltip">Аренда × 12 мес</span>
+                        </span>
+                    </td>
+                    {% for year in YEARS %}
+                        <td><input type="number" min="0" name="{{ year }}_office_rent" value="{{ form[year]['office_rent'] }}"></td>
+                    {% endfor %}
+                </tr>
+                <tr>
+                    <td>
+                        Доход от склада, тыс. ₽ в мес.
+                        <span class="info-icon" tabindex="0">?
+                            <span class="tooltip">Доход × 12 мес (вычитается из расходов)</span>
+                        </span>
+                    </td>
+                    {% for year in YEARS %}
+                        <td><input type="number" min="0" name="{{ year }}_warehouse_income" value="{{ form[year]['warehouse_income'] }}"></td>
+                    {% endfor %}
+                </tr>
+            </table>
+            <div style="text-align:left;">
+                <button type="submit">Рассчитать</button>
+            </div>
+        </div>
     </form>
 
     {% if results_per_year %}
     <div class="card-section">
-        <h3>Основные показатели по годам</h3>
+        <div class="stepper">
+            <div class="step">4</div>
+            <div class="step-label">Основные показатели по годам</div>
+        </div>
         <table class="results-table">
             <tr>
                 <th>Показатель</th>
@@ -209,49 +537,32 @@
                 <th>Комментарий к расчету</th>
             </tr>
             {% for metric, label, comment in METRICS_WITH_COMMENTS %}
-                {% if not metric.startswith('investor') %}
-                    {% if metric == "operational_profit" %}
-                        <tr>
-                            <td>Операционная прибыль (до налогов)</td>
-                            {% for year in YEARS %}
-                                <td>{{ results_per_year[year]["operational_profit"]|humanize_millions }}</td>
-                            {% endfor %}
-                            <td class="comment-col">Операционная прибыль: выручка – себестоимость – расходы + доходы</td>
-                        </tr>
-                        <tr class="tax-row">
-                            <td>Налог 15% (доход–расход)</td>
-                            {% for year in YEARS %}
-                                <td>
-                                    {{ (results_per_year[year]["operational_profit"] * 0.15) | round(0, 'floor') | humanize_millions }}
-                                </td>
-                            {% endfor %}
-                            <td class="comment-col">Оценочно: 15% на прибыль</td>
-                        </tr>
-                        <tr class="net-profit-row">
-                            <td>Чистая прибыль</td>
-                            {% for year in YEARS %}
-                                <td>
-                                    {{ (results_per_year[year]["operational_profit"] * 0.85) | round(0, 'floor') | humanize_millions }}
-                                </td>
-                            {% endfor %}
-                            <td class="comment-col">Чистая: опер. прибыль минус налог</td>
-                        </tr>
-                    {% elif metric not in ["net_profit"] %}
-                        <tr>
-                            <td>{{ label }}</td>
-                            {% for year in YEARS %}
-                                <td>{{ results_per_year[year][metric]|humanize_millions }}</td>
-                            {% endfor %}
-                            <td class="comment-col">{{ comment }}</td>
-                        </tr>
-                    {% endif %}
-                {% endif %}
+            <tr>
+                <td>{{ label }}</td>
+                {% for year in YEARS %}
+                    <td>
+                        {# Округление и сокращение для крупных чисел #}
+                        {% set val = results_per_year[year][metric] %}
+                        {% if val is number and val >= 1_000_000 %}
+                            {{ (val / 1_000_000)|round(1) }} млн
+                        {% elif val is number and val >= 1_000 %}
+                            {{ (val / 1_000)|round(1) }} тыс
+                        {% else %}
+                            {{ val|round(0) }}
+                        {% endif %}
+                    </td>
+                {% endfor %}
+                <td class="comment-col">{{ comment }}</td>
+            </tr>
             {% endfor %}
         </table>
     </div>
 
     <div class="card-section">
-        <h3>Возврат инвестиций: доли инвесторов</h3>
+        <div class="stepper">
+            <div class="step">5</div>
+            <div class="step-label">Возврат инвестиций: доли инвесторов</div>
+        </div>
         <table class="investor-table">
             <thead>
                 <tr>
@@ -266,10 +577,10 @@
                 {% for row in investors_table %}
                 <tr>
                     <td>{{ row.year }}</td>
-                    <td>{{ row.investor1_share|humanize_millions }}</td>
-                    <td>{{ row.investor2_share|humanize_millions }}</td>
-                    <td>{{ row.investor3_share|humanize_millions }}</td>
-                    <td>{{ row.investor4_share|humanize_millions }}</td>
+                    <td>{{ (row.investor1_share/1_000_000)|round(1) }} млн</td>
+                    <td>{{ (row.investor2_share/1_000_000)|round(1) }} млн</td>
+                    <td>{{ (row.investor3_share/1_000_000)|round(1) }} млн</td>
+                    <td>{{ (row.investor4_share/1_000_000)|round(1) }} млн</td>
                 </tr>
                 {% endfor %}
             </tbody>
