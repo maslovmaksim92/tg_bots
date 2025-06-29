@@ -18,7 +18,6 @@ templates = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
 
 def format_ai_analysis(text: str) -> str:
     """Форматирование для AI анализа (пример, расширяй под свои нужды)."""
-    # Любые advanced markdown или спец форматирования для блока анализа
     return re.sub(r"\n+", "<br>", text.strip())
 
 templates.env.filters['format_ai_analysis'] = format_ai_analysis
@@ -28,7 +27,7 @@ def humanize_millions(value: Any) -> str:
     try:
         value = float(value)
     except Exception:
-        return value
+        return str(value)
     if abs(value) >= 1_000_000:
         return f"{round(value/1_000_000, 1)} млн"
     elif abs(value) >= 10_000:
@@ -138,7 +137,6 @@ async def unit_economy_result(
         "nekval": nekval_total,
         "total_profit": summary["operational_profit"]
     }
-    # AI анализ — логгирование для аудита/обработки ошибок
     try:
         ai_analysis = ai_analyze_unit_economy(ai_params)
     except Exception as e:
@@ -313,7 +311,6 @@ async def unit_economy_multiyear_result(request: Request):
         }
         for year in YEARS
     ]
-    # AI-анализ с защитой от сбоев
     try:
         ai_analysis = ai_analyze_unit_economy_multiyear(
             [dict(year=year, **results_per_year[year]) for year in YEARS], total_by_metric
@@ -339,4 +336,3 @@ async def unit_economy_multiyear_result(request: Request):
 # ==============
 # END OF FILE
 # ==============
-
