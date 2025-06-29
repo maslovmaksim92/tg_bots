@@ -25,13 +25,14 @@ def format_ai_analysis(text: str) -> str:
 templates.env.filters['format_ai_analysis'] = format_ai_analysis
 
 def humanize_millions(value: Any) -> str:
-    """Округляет без запятых: 1544444 → 1.5 млн, 9000 → 9000"""
+    """Округляет без запятых: 1544444 → 1.5 млн 9000 → 9000"""
     try:
-        value = float(value)
+        value = float(str(value).replace(",", "."))
     except Exception:
         return str(value)
     if abs(value) >= 1_000_000:
-        return f"{round(value/1_000_000, 1)} млн"
+        # округляем до 1 знака после точки, убираем запятые
+        return f"{str(round(value/1_000_000, 1)).replace('.', '')} млн" if str(round(value/1_000_000, 1)).endswith('.0') else f"{str(round(value/1_000_000, 1)).replace('.', ',')} млн"
     elif abs(value) >= 10_000:
         return f"{int(round(value, 0))}"
     else:
@@ -42,7 +43,7 @@ templates.env.filters['humanize_millions'] = humanize_millions
 def humanize_percent(value: Any, precision: int = 1) -> str:
     """Форматирует проценты."""
     try:
-        value = float(value)
+        value = float(str(value).replace(",", "."))
         return f"{round(value, precision)}%"
     except Exception:
         return str(value)
@@ -50,9 +51,9 @@ def humanize_percent(value: Any, precision: int = 1) -> str:
 templates.env.filters['humanize_percent'] = humanize_percent
 
 def humanize_money(value: Any, currency: str = "₽") -> str:
-    """Форматирует валюту красиво, без запятых."""
+    """Форматирует валюту красиво без запятых."""
     try:
-        value = float(value)
+        value = float(str(value).replace(",", "."))
         return f"{int(round(value, 0))} {currency}"
     except Exception:
         return str(value)
@@ -90,11 +91,17 @@ COMMENTS_HORIZON = {
     "nq_extra_shifts": "Количество дополнительных смен неквалифицированных",
     "nq_extra_revenue": "Дополнительная выручка от смен неквалифицированных",
     "nq_extra_cost": "Себестоимость дополнительных смен неквалифицированных",
-    "costs_block": "Постоянные расходы (ФОТ, аренда, доход склада)",
+    "costs_block": "Постоянные расходы (ФОТ аренда доход склада)",
     "total_revenue": "Итого выручка за год",
     "total_cost": "Итого расходы за год",
     "operational_profit": "Операционная прибыль за год",
     "net_profit": "Чистая прибыль за год",
+    # Новые комментарии для операционной прибыли по сменам и блоку постоянных расходов
+    "main_op_profit": "Операционная прибыль по основным сменам квалифицированных сотрудников",
+    "extra_op_profit": "Операционная прибыль по дополнительным сменам квалифицированных сотрудников",
+    "nq_main_op_profit": "Операционная прибыль по основным сменам неквалифицированных сотрудников",
+    "nq_extra_op_profit": "Операционная прибыль по дополнительным сменам неквалифицированных сотрудников",
+    "total_op_profit": "Общая операционная прибыль по всем сменам",
 }
 
 YEARS = [2026, 2027, 2028, 2029, 2030]
@@ -110,6 +117,8 @@ METRICS_BLOCKS = {
         ("q_extra_shifts", "Доп. смены квалифицированных", COMMENTS_HORIZON.get("q_extra_shifts", "")),
         ("q_extra_revenue", "Выручка за доп. смены", COMMENTS_HORIZON.get("q_extra_revenue", "")),
         ("q_extra_cost", "Себестоимость доп. смен", COMMENTS_HORIZON.get("q_extra_cost", "")),
+        ("main_op_profit", "Опер прибыль (осн смены швеи)", COMMENTS_HORIZON.get("main_op_profit", "")),
+        ("extra_op_profit", "Опер прибыль (доп смены швеи)", COMMENTS_HORIZON.get("extra_op_profit", "")),
     ],
     "nq": [
         ("nq_shifts", "Смен неквалифицированных", COMMENTS_HORIZON.get("nq_shifts", "")),
@@ -118,20 +127,33 @@ METRICS_BLOCKS = {
         ("nq_extra_shifts", "Доп. смены неквалифицированных", COMMENTS_HORIZON.get("nq_extra_shifts", "")),
         ("nq_extra_revenue", "Выручка за доп. смены", COMMENTS_HORIZON.get("nq_extra_revenue", "")),
         ("nq_extra_cost", "Себестоимость доп. смен", COMMENTS_HORIZON.get("nq_extra_cost", "")),
+        ("nq_main_op_profit", "Опер прибыль (осн смены уборщ)", COMMENTS_HORIZON.get("nq_main_op_profit", "")),
+        ("nq_extra_op_profit", "Опер прибыль (доп смены уборщ)", COMMENTS_HORIZON.get("nq_extra_op_profit", "")),
     ],
     "fin": [
-        ("costs_block", "Постоянные расходы (ФОТ, аренда, доход склада)", COMMENTS_HORIZON.get("costs_block", "")),
+        ("costs_block", "Постоянные расходы (ФОТ аренда доход склада)", COMMENTS_HORIZON.get("costs_block", "")),
         ("total_revenue", "Итого выручка", COMMENTS_HORIZON.get("total_revenue", "")),
         ("total_cost", "Итого расходы", COMMENTS_HORIZON.get("total_cost", "")),
-        ("operational_profit", "Операционная прибыль", COMMENTS_HORIZON.get("operational_profit", "")),
-        ("net_profit", "Чистая прибыль", COMMENTS_HORIZON.get("net_profit", "")),
+        ("total_op_profit", "Общая операционная прибыль", COMMENTS_HORIZON.get("total_op_profit", "")),
+        ("net_profit", "Чистая прибыль (после налога)", COMMENTS_HORIZON.get("net_profit", "")),
     ]
 }
+
+# ======= Утилита для суммирования числовых метрик по годам ========
+def get_total_per_metric(results_per_year: Dict[int, Dict[str, Any]], YEARS: List[int]) -> Dict[str, float]:
+    """Агрегирует суммы по числовым метрикам за все годы."""
+    total = {}
+    for k, v in results_per_year[YEARS[0]].items():
+        if isinstance(v, (int, float)):
+            total[k] = sum(
+                results_per_year[y][k] for y in YEARS if isinstance(results_per_year[y][k], (int, float))
+            )
+    return total
 
 # ========== MULTIYEAR (с кумулятивом и аудиторскими алертами) ==========
 
 def get_multiyear_default_form() -> Dict[int, Dict[str, Any]]:
-    """Форма на годы с автоинкрементом для цен/стоимостей (NEW: реальные данные, индексация 10%/год)."""
+    """Форма на годы с автоинкрементом для цен/стоимостей (NEW: реальные данные индексация 10%/год)."""
     BASE = {
         2026: dict(
             q_count=20, q_days=247, q_price=3800, q_cost=1924,
@@ -157,7 +179,7 @@ def get_multiyear_default_form() -> Dict[int, Dict[str, Any]]:
     return form
 
 def calc_one_year(data: Dict[str, Any]) -> Dict[str, Any]:
-    """Расчет одного года для мультигодовой таблицы с кумулятивами, без NPV/IRR."""
+    """Расчет одного года для мультигодовой таблицы с кумулятивами без NPV/IRR."""
     q_shifts = int(data["q_count"]) * int(data["q_days"])
     q_revenue = q_shifts * float(data["q_price"])
     q_cost = q_shifts * float(data["q_cost"])
@@ -172,16 +194,29 @@ def calc_one_year(data: Dict[str, Any]) -> Dict[str, Any]:
     nq_extra_revenue = nq_extra_shifts * float(data["nq_extra_price"])
     nq_extra_cost = nq_extra_shifts * float(data["nq_extra_cost"])
 
-    fot = float(data.get("fot", 0)) * 12_000
-    office_rent = float(data.get("office_rent", 0)) * 12_000
-    warehouse_income = float(data.get("warehouse_income", 0)) * 12_000
+    fot = float(data.get("fot", 0)) * 12000
+    office_rent = float(data.get("office_rent", 0)) * 12000
+    warehouse_income = float(data.get("warehouse_income", 0)) * 12000
 
     costs_block = fot + office_rent - warehouse_income
+
+    # Новый расчет операционной прибыли по сменам
+    main_op_profit = q_revenue - q_cost
+    extra_op_profit = q_extra_revenue - q_extra_cost
+    nq_main_op_profit = nq_revenue - nq_cost
+    nq_extra_op_profit = nq_extra_revenue - nq_extra_cost
+
+    total_op_profit = main_op_profit + extra_op_profit + nq_main_op_profit + nq_extra_op_profit
+    net_profit = total_op_profit * 0.85  # -15% налог на прибыль
+
+    constant_expenses = {
+        "fot": int(fot),
+        "office_rent": int(office_rent),
+    }
 
     total_revenue = q_revenue + q_extra_revenue + nq_revenue + nq_extra_revenue
     total_cost = q_cost + q_extra_cost + nq_cost + nq_extra_cost + costs_block
     operational_profit = total_revenue - total_cost
-    net_profit = operational_profit
 
     # Кумулятивные выплаты инвесторам (NEW)
     investor1_share = max(int(net_profit * 0.5 * 0.85), 0)
@@ -212,6 +247,12 @@ def calc_one_year(data: Dict[str, Any]) -> Dict[str, Any]:
         "nq_extra_revenue": int(nq_extra_revenue),
         "nq_extra_cost": int(nq_extra_cost),
         "costs_block": int(costs_block),
+        "main_op_profit": int(main_op_profit),
+        "extra_op_profit": int(extra_op_profit),
+        "nq_main_op_profit": int(nq_main_op_profit),
+        "nq_extra_op_profit": int(nq_extra_op_profit),
+        "total_op_profit": int(total_op_profit),
+        "constant_expenses": constant_expenses,
         "total_revenue": int(total_revenue),
         "total_cost": int(total_cost),
         "operational_profit": int(operational_profit),
@@ -225,7 +266,7 @@ def calc_one_year(data: Dict[str, Any]) -> Dict[str, Any]:
 
 # ========== AI-экспертиза по годам и критическим точкам ===========
 def ai_financial_expert_analysis(years: List[int], results: Dict[int, Dict[str, Any]]) -> Dict[str, Any]:
-    """AI-финансовая экспертиза: ключевые тренды, критические точки, алерты, рекомендации (NEW: без NPV/IRR)"""
+    """AI-финансовая экспертиза: ключевые тренды критические точки алерты рекомендации (NEW: без NPV/IRR)"""
     summary, alerts = [], []
     profits = [results[y]["net_profit"] for y in years]
     prev_profit = profits[0]
@@ -249,7 +290,7 @@ def ai_financial_expert_analysis(years: List[int], results: Dict[int, Dict[str, 
             alerts.append(f"Год {year}: Прочие расходы превышают 7% выручки.")
         if stagnation_years > 1:
             alerts.append(f"Нет роста прибыли {stagnation_years+1} года подряд!")
-    conclusion = "AI-финансовая экспертиза: бизнес устойчив, инвестиции окупятся менее чем за 3 года при текущих темпах. Рекомендуется ежегодная индексация ставок и контроль прочих расходов."
+    conclusion = "AI-финансовая экспертиза: бизнес устойчив инвестиции окупятся менее чем за 3 года при текущих темпах. Рекомендуется ежегодная индексация ставок и контроль прочих расходов."
     return {
         "trend": summary,
         "expert_opinion": conclusion,
@@ -299,7 +340,7 @@ async def unit_economy_multiyear_result(request: Request):
         ]:
             val = data.get(f"{year}_{field}", 0)
             try:
-                form[year][field] = float(val)
+                form[year][field] = float(str(val).replace(",", "."))
             except Exception:
                 form[year][field] = 0
 
@@ -359,9 +400,10 @@ async def unit_economy_multiyear_result(request: Request):
 
     # AI анализ (SWOT + alert + рекомендации)
     try:
+        totals = get_total_per_metric(results_per_year, YEARS)
         ai_analysis = ai_analyze_unit_economy_multiyear(
             [dict(year=year, **results_per_year[year]) for year in YEARS],
-            {k: sum(results_per_year[y].get(k, 0) for y in YEARS) for k in results_per_year[YEARS[0]]}
+            totals
         )
         fin_expert = ai_financial_expert_analysis(YEARS, results_per_year)
     except Exception as e:
@@ -385,6 +427,7 @@ async def unit_economy_multiyear_result(request: Request):
             "fin_expert": fin_expert,
             "response_time": f"{response_time:.3f} сек",
             "lang": lang,
+            "constant_expenses": {year: results_per_year[year]["constant_expenses"] for year in YEARS},
         }
     )
 
@@ -486,7 +529,7 @@ async def unit_economy_result(
 # =============== API: health/selftest endpoint ================
 @router.get("/selftest", response_class=JSONResponse)
 async def unit_economy_selftest(request: Request):
-    """Self-test endpoint (health, structure, model version, examples)."""
+    """Self-test endpoint (health structure model version examples)."""
     return {
         "status": "ok",
         "time": datetime.utcnow().isoformat(),
@@ -499,4 +542,3 @@ async def unit_economy_selftest(request: Request):
 # ==============
 # END OF FILE
 # ==============
-
