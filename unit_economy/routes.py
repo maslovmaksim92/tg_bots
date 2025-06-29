@@ -256,13 +256,12 @@ def get_multiyear_default_form():
             prev = form[year-1]
             form[year] = {}
             for k, v in prev.items():
-                if k in ("fot", "office_rent", "warehouse_income"):
-                    form[year][k] = round(prev[k] * 1.10)
-                elif any(x in k for x in ("price", "cost")):
-                    form[year][k] = round(prev[k] * 1.10)
+                if any(sub in k for sub in ("price", "cost", "fot", "office_rent", "warehouse_income")):
+                    form[year][k] = round(prev[k] * 1.10, 2)
                 else:
                     form[year][k] = prev[k]
     return form
+
 
 def calc_one_year(data):
     q_shifts = data["q_count"] * data["q_days"]
