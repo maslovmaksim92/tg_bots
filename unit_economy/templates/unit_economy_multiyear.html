@@ -839,7 +839,7 @@
     </div>
     {% endif %}
 
-    <!-- AI-анализ (GPT, SWOT, улучшения) -->
+      <!-- AI-анализ (GPT, SWOT, улучшения) -->
     {% if ai_analysis %}
     <div class="swot-block">
         <b>AI-анализ:</b><br>
@@ -847,10 +847,22 @@
     </div>
     {% endif %}
 
+    <!-- =============== Новый блок: AI-аналитика для инвестора =============== -->
+    {% if ai_investor %}
+    <div class="finexpert-block" style="border:2.3px solid #446cd2; background:#f4f8ff; color:#1b3c61;">
+        <b>Аналитика для инвестора (AI-директор):</b>
+        <div style="margin:1.1em 0 0.6em 0;">
+            <span>{{ ai_investor|format_ai_analysis|safe }}</span>
+        </div>
+    </div>
+    {% endif %}
+    <!-- =============== / Новый блок =============== -->
+
     <!-- Время ответа -->
     {% if response_time %}
         <div style="color:#8195b8; font-size:1.04em; margin-top:10px;">Время обработки: <b>{{ response_time }}</b></div>
     {% endif %}
+
 
     </div> <!-- /container -->
 </body>
