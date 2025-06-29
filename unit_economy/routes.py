@@ -256,6 +256,7 @@ def get_multiyear_default_form():
             prev = form[year-1]
             form[year] = {}
             for k, v in prev.items():
+                # Только эти ключи индексируем (+10%)
                 if any(sub in k for sub in ("price", "cost", "fot", "office_rent", "warehouse_income")):
                     form[year][k] = round(prev[k] * 1.10, 2)
                 else:
