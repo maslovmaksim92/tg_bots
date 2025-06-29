@@ -56,7 +56,6 @@ COMMENTS = {
     "operational_profit": "Суммарная опер. прибыль: Опер. прибыль основная + Опер. прибыль доп. смен",
 }
 
-# ==== Комментарии к мультигодовому расчету ====
 COMMENTS_HORIZON = {
     "q_shifts": "Смены (квалиф.): Кол-во × дней",
     "q_revenue": "Выручка (квалиф.): Смены × цена смены",
@@ -237,11 +236,11 @@ async def unit_economy_result(
 # МУЛЬТИГОДОВОЙ БЛОК
 # ========================
 
-YEARS = [2025, 2026, 2027, 2028, 2029, 2030]
+YEARS = [2026, 2027, 2028, 2029, 2030]
 
 def get_multiyear_default_form():
     BASE = {
-        2025: dict(
+        2026: dict(
             q_count=10, q_days=247, q_price=3800, q_cost=2000,
             q_extra_count=10, q_extra_days=247, q_extra_price=5700, q_extra_cost=3000,
             nq_count=40, nq_days=247, nq_price=3000, nq_cost=2000,
@@ -354,6 +353,18 @@ async def unit_economy_multiyear_result(request: Request):
     for metric, _, _ in METRICS_WITH_COMMENTS:
         total_by_metric[metric] = sum(results_per_year[year][metric] for year in YEARS)
 
+    # Формируем структуру для таблицы инвесторов
+    investors_table = []
+    for year in YEARS:
+        ydata = results_per_year[year]
+        investors_table.append({
+            "year": year,
+            "investor1_share": ydata["investor1_share"],
+            "investor2_share": ydata["investor2_share"],
+            "investor3_share": ydata["investor3_share"],
+            "investor4_share": ydata["investor4_share"],
+        })
+
     ai_analysis = ai_analyze_unit_economy_multiyear(
         [dict(year=year, **results_per_year[year]) for year in YEARS], total_by_metric
     )
@@ -369,5 +380,6 @@ async def unit_economy_multiyear_result(request: Request):
             "total_by_metric": total_by_metric,
             "ai_analysis": ai_analysis,
             "COMMENTS_HORIZON": COMMENTS_HORIZON,
+            "investors_table": investors_table,  # <-- вот это обязательно для шаблона
         }
     )
