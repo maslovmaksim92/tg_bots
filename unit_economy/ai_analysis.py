@@ -85,7 +85,7 @@ def ai_analyze_unit_economy(params: dict) -> str:
                 time.sleep(DELAY_SECONDS * attempt)
     return f"[AI-анализ] Не удалось получить ответ от GPT-4: {last_error}"
 
-# ---- МУЛЬТИГОДОВОЙ АНАЛИЗ ----
+# ---- МУЛЬТИГОДОВОЙ SWOT АНАЛИЗ ----
 ANALYSIS_PROMPT_TEMPLATE_MULTIYEAR = """
 Проанализируй динамику unit-экономики по годам 2025–2030. Формат ответа: SWOT-анализ, рекомендации, выводы на основе трендов за все годы. Укажи:
 - Ключевые изменения в выручке, прибыли, маржинальности по годам
@@ -100,7 +100,6 @@ ANALYSIS_PROMPT_TEMPLATE_MULTIYEAR = """
 """
 
 def ai_analyze_unit_economy_multiyear(results: list, summary: dict) -> str:
-    # Markdown-таблица для всех инвесторов!
     table = (
         "| Год | Выручка | Себестоимость | Опер. прибыль | Чистая прибыль | Инв. 1 (50%) | Инв. 2 (30%) | Инв. 3 (10%) | Инв. 4 (10%) |\n"
         "|-----|---------|---------------|---------------|---------------|--------------|--------------|--------------|--------------|\n"
@@ -142,3 +141,65 @@ def ai_analyze_unit_economy_multiyear(results: list, summary: dict) -> str:
                 logger.info(f"[AI-мультигод] Ретрай через {DELAY_SECONDS} секунд...")
                 time.sleep(DELAY_SECONDS * attempt)
     return f"[AI-мультигод] Не удалось получить ответ от GPT-4: {last_error}"
+
+# ---- ПРОКАЧАННЫЙ ИНВЕСТОРСКИЙ АНАЛИЗ ----
+INVESTOR_PROMPT_TEMPLATE = """
+Вы — опытный финансовый директор и институциональный инвестор, оцениваете проект для покупки доли в нём.
+
+**Задача:**  
+Дайте холодную, взвешенную оценку экономической модели, строго из позиции инвестора.  
+- Приведите главные цифры возврата, сроков окупаемости, долей и рисков.  
+- Дайте только то, что убедит именно профессионального инвестора.  
+- Если есть слабые места, скажите прямо и без смягчения.
+- Без рекламы, только суть и выводы: “купил бы/не купил бы и почему”.
+
+Данные по годам (суммы в ₽):
+
+{table}
+
+Суммарная выручка: {total_revenue}  
+Суммарная чистая прибыль: {total_net_profit}  
+"""
+
+def ai_investor_analysis_multiyear(results: list, summary: dict) -> str:
+    table = (
+        "| Год | Выручка | Себестоимость | Опер. прибыль | Чистая прибыль | Инв. 1 (50%) | Инв. 2 (30%) | Инв. 3 (10%) | Инв. 4 (10%) |\n"
+        "|-----|---------|---------------|---------------|---------------|--------------|--------------|--------------|--------------|\n"
+    )
+    for row in results:
+        table += (
+            f"| {row['year']} "
+            f"| {int(row['total_revenue'])} "
+            f"| {int(row['total_cost'])} "
+            f"| {int(row['operational_profit'])} "
+            f"| {int(row['net_profit'])} "
+            f"| {int(row.get('investor1_share', 0))} "
+            f"| {int(row.get('investor2_share', 0))} "
+            f"| {int(row.get('investor3_share', 0))} "
+            f"| {int(row.get('investor4_share', 0))} |\n"
+        )
+    prompt = INVESTOR_PROMPT_TEMPLATE.format(
+        table=table,
+        total_revenue=int(summary.get("total_revenue", 0)),
+        total_net_profit=int(summary.get("net_profit", 0))
+    )
+    last_error = None
+    for attempt in range(1, MAX_ATTEMPTS + 1):
+        try:
+            logger.info(f"[AI-инвестор] Попытка #{attempt}... Запрос к GPT-4o")
+            response = client.chat.completions.create(
+                model="gpt-4o",
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.1,  # максимально cold-факты
+                max_tokens=900
+            )
+            answer = response.choices[0].message.content.strip()
+            logger.info("[AI-инвестор] Ответ GPT-4 получен")
+            return answer
+        except OpenAIError as e:
+            logger.error(f"[AI-инвестор] Ошибка GPT-4: {e}")
+            last_error = e
+            if attempt < MAX_ATTEMPTS:
+                logger.info(f"[AI-инвестор] Ретрай через {DELAY_SECONDS} секунд...")
+                time.sleep(DELAY_SECONDS * attempt)
+    return f"[AI-инвестор] Не удалось получить ответ от GPT-4: {last_error}"
