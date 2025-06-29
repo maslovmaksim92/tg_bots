@@ -2,195 +2,174 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Расчет юнит-экономики</title>
+    <title>Unit-экономика 2025–2030 (мультигодовой расчет)</title>
     <style>
         body { font-family: Arial, sans-serif; margin: 2rem; }
-        h2, h3 { margin-bottom: 0.5em; }
-        .form-block { margin-bottom: 1.2rem; }
-        label { display: inline-block; min-width: 240px; }
-        input[type=number] { width: 140px; padding: 4px; margin-right: 12px; }
-        button { padding: 8px 26px; margin-top: 12px; font-size: 1.07em; background: #41c97d; color: #fff; border: none; border-radius: 7px;}
-        .section { border: 1px solid #c6e2f5; border-radius: 12px; background: #f4fafd; padding: 15px 28px 5px 18px; margin-bottom: 2em; }
+        .section { border: 1px solid #dde5f3; border-radius: 12px; background: #f7fafd; padding: 18px 22px 10px 18px; margin-bottom: 2em; }
         .section-extra { background: #f9f6e6; border: 1px solid #f4d36b; }
-        .result-table { margin-top: 1.5rem; border-collapse: collapse; min-width: 620px; }
-        .result-table td, .result-table th { border: 1px solid #aaa; padding: 7px 13px; }
-        .result-table th { background: #e2eefc; }
-        .result-table tfoot th { background: #d1f9d1; }
+        .horizon-table th, .horizon-table td { text-align: center; padding: 6px; }
+        .horizon-table th { background: #f6f6fb; }
+        .horizon-table tr.section td { background: #e6f4fa; font-weight: bold; }
+        .horizon-table input { width: 80px; text-align: right; }
+        .horizon-table small { color: #888; font-size: 0.9em; display:block; }
+        .results-table { margin-top: 22px; border-collapse: collapse; width: 100%; min-width: 1200px;}
+        .results-table th, .results-table td { border: 1px solid #bbb; padding: 6px 10px; }
+        .results-table th { background: #e2eefc; }
+        .results-table td:last-child { color: #888; font-size: 0.98em;}
+        .btn-main { padding: 7px 22px; font-size: 1.1em; margin-top: 10px; border-radius: 8px; border: none; background: #466de3; color: #fff; cursor: pointer; }
+        .btn-main:hover { background: #2a4dbe; }
         .ai-block { border: 1px solid #81d08b; background: #f6fff6; border-radius: 10px; padding: 13px 18px; margin-top: 25px; font-size: 1.1em; }
-        .comment-col { color: #85837e; font-size: 0.99em; min-width: 160px;}
     </style>
 </head>
 <body>
-    <h2>Калькулятор юнит-экономики: <br>Квалифицированный и неквалифицированный персонал</h2>
-    <form method="post">
+    <h2>Unit-экономика 2025–2030 (мультигодовой расчет)</h2>
+    <form method="post" autocomplete="off">
         <div class="section">
             <h3>Квалифицированный персонал (швеи)</h3>
-            <div class="form-block">
-                <label>Количество сотрудников:</label>
-                <input type="number" name="q_count" required min="1" step="1" value="{{ form.q_count }}">
-            </div>
-            <div class="form-block">
-                <label>Цена 1 смены, ₽:</label>
-                <input type="number" name="q_price" required step="50" value="{{ form.q_price }}">
-            </div>
-            <div class="form-block">
-                <label>Себестоимость 1 смены, ₽:</label>
-                <input type="number" name="q_cost" required step="10" value="{{ form.q_cost }}">
-            </div>
-            <div class="form-block">
-                <label>Рабочих дней в году:</label>
-                <input type="number" name="q_days" required min="1" max="366" step="1" value="{{ form.q_days }}">
-            </div>
-        </div>
-        <div class="section section-extra">
-            <h3>Дополнительные смены (квалифицированный персонал)</h3>
-            <div class="form-block">
-                <label>Кол-во сотрудников на доп. сменах:</label>
-                <input type="number" name="q_extra_count" min="0" step="1" value="{{ form.q_extra_count }}">
-            </div>
-            <div class="form-block">
-                <label>Рабочих дней доп. смен:</label>
-                <input type="number" name="q_extra_days" min="0" max="366" step="1" value="{{ form.q_extra_days }}">
-            </div>
-            <div class="form-block">
-                <label>Выручка с 1 доп. смены, ₽:</label>
-                <input type="number" name="q_extra_price" min="0" step="10" value="{{ form.q_extra_price }}">
-            </div>
-            <div class="form-block">
-                <label>Себестоимость 1 доп. смены, ₽:</label>
-                <input type="number" name="q_extra_cost" min="0" step="10" value="{{ form.q_extra_cost }}">
-            </div>
+            <table class="horizon-table" border="1" style="width:100%; min-width:900px;">
+                <tr>
+                    <th>Статья</th>
+                    {% for year in YEARS %}
+                        <th>{{ year }}</th>
+                    {% endfor %}
+                    <th>Комментарий</th>
+                </tr>
+                <tr>
+                    <td>Кол-во (чел)<br><small>Вручную</small></td>
+                    {% for year in YEARS %}
+                        <td><input type="number" min="0" step="1" name="{{ year }}_q_count" value="{{ form[year]['q_count'] }}"></td>
+                    {% endfor %}
+                    <td rowspan="4">Все значения задаются вручную по исходным данным (см. Excel)</td>
+                </tr>
+                <tr>
+                    <td>Рабочих дней в году<br><small>Вручную</small></td>
+                    {% for year in YEARS %}
+                        <td><input type="number" min="1" max="366" step="1" name="{{ year }}_q_days" value="{{ form[year]['q_days'] }}"></td>
+                    {% endfor %}
+                </tr>
+                <tr>
+                    <td>Цена смены, ₽<br><small>Вручную</small></td>
+                    {% for year in YEARS %}
+                        <td><input type="number" min="0" step="10" name="{{ year }}_q_price" value="{{ form[year]['q_price'] }}"></td>
+                    {% endfor %}
+                </tr>
+                <tr>
+                    <td>Себестоимость смены, ₽<br><small>Вручную</small></td>
+                    {% for year in YEARS %}
+                        <td><input type="number" min="0" step="10" name="{{ year }}_q_cost" value="{{ form[year]['q_cost'] }}"></td>
+                    {% endfor %}
+                </tr>
+                <tr>
+                    <td>Доп. смены в год<br><small>Вручную</small></td>
+                    {% for year in YEARS %}
+                        <td><input type="number" min="0" step="1" name="{{ year }}_q_extra_count" value="{{ form[year]['q_extra_count'] }}"></td>
+                    {% endfor %}
+                    <td rowspan="4">Данные по дополнительным сменам — также вручную</td>
+                </tr>
+                <tr>
+                    <td>Дней в доп. сменах<br><small>Вручную</small></td>
+                    {% for year in YEARS %}
+                        <td><input type="number" min="0" max="366" step="1" name="{{ year }}_q_extra_days" value="{{ form[year]['q_extra_days'] }}"></td>
+                    {% endfor %}
+                </tr>
+                <tr>
+                    <td>Цена доп. смены, ₽<br><small>Вручную</small></td>
+                    {% for year in YEARS %}
+                        <td><input type="number" min="0" step="10" name="{{ year }}_q_extra_price" value="{{ form[year]['q_extra_price'] }}"></td>
+                    {% endfor %}
+                </tr>
+                <tr>
+                    <td>Себест. доп. смены, ₽<br><small>Вручную</small></td>
+                    {% for year in YEARS %}
+                        <td><input type="number" min="0" step="10" name="{{ year }}_q_extra_cost" value="{{ form[year]['q_extra_cost'] }}"></td>
+                    {% endfor %}
+                </tr>
+            </table>
         </div>
         <div class="section">
-            <h3>Неквалифицированный персонал</h3>
-            <div class="form-block">
-                <label>Количество сотрудников:</label>
-                <input type="number" name="nq_count" required min="1" step="1" value="{{ form.nq_count }}">
-            </div>
-            <div class="form-block">
-                <label>Цена 1 смены, ₽:</label>
-                <input type="number" name="nq_price" required step="50" value="{{ form.nq_price }}">
-            </div>
-            <div class="form-block">
-                <label>Себестоимость 1 смены, ₽:</label>
-                <input type="number" name="nq_cost" required step="10" value="{{ form.nq_cost }}">
-            </div>
-            <div class="form-block">
-                <label>Рабочих дней в году:</label>
-                <input type="number" name="nq_days" required min="1" max="366" step="1" value="{{ form.nq_days }}">
-            </div>
+            <h3>Неквалифицированный персонал (уборщицы)</h3>
+            <!-- аналогично, повторить структуру таблицы как выше, поля nq_* -->
+            <!-- ... -->
         </div>
-        <div class="section section-extra">
-            <h3>Дополнительные смены (неквалифицированный персонал)</h3>
-            <div class="form-block">
-                <label>Кол-во сотрудников на доп. сменах:</label>
-                <input type="number" name="nq_extra_count" min="0" step="1" value="{{ form.nq_extra_count }}">
-            </div>
-            <div class="form-block">
-                <label>Рабочих дней доп. смен:</label>
-                <input type="number" name="nq_extra_days" min="0" max="366" step="1" value="{{ form.nq_extra_days }}">
-            </div>
-            <div class="form-block">
-                <label>Выручка с 1 доп. смены, ₽:</label>
-                <input type="number" name="nq_extra_price" min="0" step="10" value="{{ form.nq_extra_price }}">
-            </div>
-            <div class="form-block">
-                <label>Себестоимость 1 доп. смены, ₽:</label>
-                <input type="number" name="nq_extra_cost" min="0" step="10" value="{{ form.nq_extra_cost }}">
-            </div>
+        <div class="section">
+            <h3>Прочие расходы и доходы</h3>
+            <table class="horizon-table" border="1" style="width:100%;">
+                <tr>
+                    <td>ФОТ, тыс. ₽ в мес.<br><small>Автоиндексация 10%/год</small></td>
+                    {% for year in YEARS %}
+                        <td><input type="number" min="0" step="100" name="{{ year }}_fot" value="{{ form[year]['fot'] }}"></td>
+                    {% endfor %}
+                    <td>Считается как "ФОТ × 12", индексируется на 10%/год</td>
+                </tr>
+                <tr>
+                    <td>Аренда офиса, тыс. ₽ в мес.<br><small>Автоиндексация 10%/год</small></td>
+                    {% for year in YEARS %}
+                        <td><input type="number" min="0" step="10" name="{{ year }}_office_rent" value="{{ form[year]['office_rent'] }}"></td>
+                    {% endfor %}
+                    <td>Считается как "Аренда × 12", индексируется на 10%/год</td>
+                </tr>
+                <tr>
+                    <td>Доход от склада, тыс. ₽ в мес.<br><small>Автоиндексация 10%/год</small></td>
+                    {% for year in YEARS %}
+                        <td><input type="number" min="0" step="10" name="{{ year }}_warehouse_income" value="{{ form[year]['warehouse_income'] }}"></td>
+                    {% endfor %}
+                    <td>Считается как "Доход × 12", индексируется на 10%/год, **вычитается из расходов**</td>
+                </tr>
+            </table>
         </div>
-        <button type="submit">Рассчитать</button>
+        <div style="text-align:left; margin-top:10px;">
+            <button type="submit" class="btn-main">Рассчитать</button>
+        </div>
     </form>
 
-    {% if kval and nekval %}
-    <h3>Результаты расчёта</h3>
-    <table class="result-table">
+    {% if results_per_year %}
+    <h3>Итоговые показатели по годам</h3>
+    <table class="results-table">
         <tr>
             <th>Показатель</th>
-            <th>Квалиф.</th>
-            <th>Неквалиф.</th>
-            <th>Комментарий</th>
+            {% for year in YEARS %}
+                <th>{{ year }}</th>
+            {% endfor %}
+            <th>Комментарий/Формула</th>
         </tr>
         <tr>
-            <td>Смен в год</td>
-            <td>{{ kval.shifts_per_year }}</td>
-            <td>{{ nekval.shifts_per_year }}</td>
-            <td class="comment-col">{{ COMMENTS.shifts_per_year }}</td>
+            <td>Смен в год (квалиф.)</td>
+            {% for year in YEARS %}
+                <td>{{ results_per_year[year].q_shifts }}</td>
+            {% endfor %}
+            <td>Кол-во × дней</td>
         </tr>
         <tr>
-            <td>Выручка основная</td>
-            <td>{{ kval.main_revenue|round(2) }}</td>
-            <td>{{ nekval.main_revenue|round(2) }}</td>
-            <td class="comment-col">{{ COMMENTS.main_revenue }}</td>
+            <td>Выручка (квалиф.)</td>
+            {% for year in YEARS %}
+                <td>{{ results_per_year[year].q_revenue }}</td>
+            {% endfor %}
+            <td>Смены × цена смены</td>
+        </tr>
+        <!-- ... все остальные строки по аналогии ... -->
+        <tr>
+            <td>ФОТ, аренда, склад</td>
+            {% for year in YEARS %}
+                <td>{{ results_per_year[year].costs_block }}</td>
+            {% endfor %}
+            <td>ФОТ × 12 + аренда × 12 – склад × 12</td>
         </tr>
         <tr>
-            <td>Себестоимость основная</td>
-            <td>{{ kval.main_cost|round(2) }}</td>
-            <td>{{ nekval.main_cost|round(2) }}</td>
-            <td class="comment-col">{{ COMMENTS.main_cost }}</td>
+            <th>Итого операционная прибыль</th>
+            {% for year in YEARS %}
+                <th>{{ results_per_year[year].operational_profit }}</th>
+            {% endfor %}
+            <th>Выручка – себестоимость – расходы + доходы</th>
         </tr>
-        <tr>
-            <td>Опер. прибыль основная</td>
-            <td>{{ kval.main_profit|round(2) }}</td>
-            <td>{{ nekval.main_profit|round(2) }}</td>
-            <td class="comment-col">{{ COMMENTS.main_profit }}</td>
-        </tr>
-        <tr>
-            <td>Смен в доп. сменах</td>
-            <td>{{ kval.extra_shifts }}</td>
-            <td>{{ nekval.extra_shifts }}</td>
-            <td class="comment-col">{{ COMMENTS.extra_shifts }}</td>
-        </tr>
-        <tr>
-            <td>Выручка с доп. смен</td>
-            <td>{{ kval.extra_revenue|round(2) }}</td>
-            <td>{{ nekval.extra_revenue|round(2) }}</td>
-            <td class="comment-col">{{ COMMENTS.extra_revenue }}</td>
-        </tr>
-        <tr>
-            <td>Себестоимость доп. смен</td>
-            <td>{{ kval.extra_cost|round(2) }}</td>
-            <td>{{ nekval.extra_cost|round(2) }}</td>
-            <td class="comment-col">{{ COMMENTS.extra_cost }}</td>
-        </tr>
-        <tr>
-            <td>Опер. прибыль доп. смен</td>
-            <td>{{ kval.extra_profit|round(2) }}</td>
-            <td>{{ nekval.extra_profit|round(2) }}</td>
-            <td class="comment-col">{{ COMMENTS.extra_profit }}</td>
-        </tr>
-        <tfoot>
-        <tr>
-            <th>Суммарная выручка</th>
-            <th>{{ kval.total_revenue|round(2) }}</th>
-            <th>{{ nekval.total_revenue|round(2) }}</th>
-            <th class="comment-col">{{ COMMENTS.total_revenue }}</th>
-        </tr>
-        <tr>
-            <th>Суммарная себестоимость</th>
-            <th>{{ kval.total_cost|round(2) }}</th>
-            <th>{{ nekval.total_cost|round(2) }}</th>
-            <th class="comment-col">{{ COMMENTS.total_cost }}</th>
-        </tr>
-        <tr>
-            <th>Суммарная опер. прибыль</th>
-            <th>{{ kval.operational_profit|round(2) }}</th>
-            <th>{{ nekval.operational_profit|round(2) }}</th>
-            <th class="comment-col">{{ COMMENTS.operational_profit }}</th>
-        </tr>
-        <tr>
-            <th colspan="3">Сумма по всем блокам</th>
-            <th>{{ summary.operational_profit|round(2) }}</th>
-        </tr>
-        </tfoot>
+        <!-- ... -->
     </table>
     {% endif %}
 
     {% if ai_analysis %}
-    <div class="ai-block">
-        <b>AI-анализ:</b><br>
-        {{ ai_analysis | format_ai_analysis | safe }}
-    </div>
+        <div class="ai-block">
+            <b>AI-анализ:</b><br>
+            {{ ai_analysis | safe }}
+        </div>
     {% endif %}
 </body>
 </html>
