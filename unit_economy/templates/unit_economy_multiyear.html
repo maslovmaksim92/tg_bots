@@ -172,13 +172,6 @@
             <td class="comment-col">{{ comment }}</td>
         </tr>
         {% endfor %}
-        <tr style="font-weight: bold; background:#fcf8e4;">
-            <td>Итого</td>
-            {% for year in YEARS %}
-                <td>{{ results_per_year[year]['total']|int }}</td>
-            {% endfor %}
-            <td class="comment-col">Сумма всех итоговых показателей по годам</td>
-        </tr>
     </table>
     {% endif %}
 
