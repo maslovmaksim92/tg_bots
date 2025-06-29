@@ -1,5 +1,3 @@
-
-```python
 from fastapi import APIRouter, Request, Form
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
