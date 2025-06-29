@@ -56,6 +56,31 @@ COMMENTS = {
     "operational_profit": "Суммарная опер. прибыль: Опер. прибыль основная + Опер. прибыль доп. смен",
 }
 
+# ==== Новое! Комментарии к мультигодовому расчету ====
+COMMENTS_HORIZON = {
+    "q_shifts": "Смены (квалиф.) = Кол-во × дней",
+    "q_revenue": "Выручка (квалиф.) = Смены × цена смены",
+    "q_cost": "Себестоимость (квалиф.) = Смены × себестоимость",
+    "q_extra_shifts": "Смены в доп. сменах (квалиф.) = Кол-во × дней",
+    "q_extra_revenue": "Выручка (доп. смены) = Смены × цена",
+    "q_extra_cost": "Себестоимость (доп. смены) = Смены × себестоимость",
+    "nq_shifts": "Смены (неквалиф.) = Кол-во × дней",
+    "nq_revenue": "Выручка (неквалиф.) = Смены × цена смены",
+    "nq_cost": "Себестоимость (неквалиф.) = Смены × себестоимость",
+    "nq_extra_shifts": "Смены в доп. сменах (неквалиф.) = Кол-во × дней",
+    "nq_extra_revenue": "Выручка (доп. смены) = Смены × цена",
+    "nq_extra_cost": "Себестоимость (доп. смены) = Смены × себестоимость",
+    "costs_block": "ФОТ×12 + аренда×12 − доход со склада×12",
+    "total_revenue": "Суммарная выручка: все выручки",
+    "total_cost": "Суммарная себестоимость: все себестоимости + расходы",
+    "operational_profit": "Операционная прибыль: выручка − себестоимость − расходы + доходы",
+    "net_profit": "Чистая прибыль = операционная − налоги/инвесторы",
+    "investor1_share": "Доля инвестора 1: 50% от чистой прибыли (после НДФЛ 15%)",
+    "investor2_share": "Доля инвестора 2: 30% от чистой прибыли (после НДФЛ 15%)",
+    "investor3_share": "Доля инвестора 3: 10% от чистой прибыли (после НДФЛ 15%)",
+    "investor4_share": "Доля инвестора 4: 10% от чистой прибыли (после НДФЛ 15%)",
+}
+
 @router.get("/", response_class=HTMLResponse)
 async def unit_economy_form(request: Request):
     form = get_default_form()
@@ -197,16 +222,11 @@ HORIZON_METRICS = [
 def get_multiyear_default_form():
     BASE = {
         2025: dict(
-            q_count=10, q_days=247, q_price=3800, q_cost=1924,
-            q_extra_count=5, q_extra_days=50, q_extra_price=4000, q_extra_cost=2500,
-            nq_count=40, nq_days=247, nq_price=2980, nq_cost=1924,
-            nq_extra_count=10, nq_extra_days=30, nq_extra_price=3500, nq_extra_cost=2000,
-        ),
-        2026: dict(
-            q_count=10, q_days=247, q_price=4100, q_cost=2100,
-            q_extra_count=5, q_extra_days=50, q_extra_price=4200, q_extra_cost=2700,
-            nq_count=40, nq_days=247, nq_price=3200, nq_cost=2100,
-            nq_extra_count=10, nq_extra_days=30, nq_extra_price=3700, nq_extra_cost=2200,
+            q_count=10, q_days=247, q_price=3800, q_cost=2000,
+            q_extra_count=10, q_extra_days=247, q_extra_price=5700, q_extra_cost=3000,
+            nq_count=40, nq_days=247, nq_price=3000, nq_cost=2000,
+            nq_extra_count=40, nq_extra_days=620, nq_extra_price=4500, nq_extra_cost=4500,
+            fot=500, office_rent=30, warehouse_income=20,
         ),
     }
     form = {}
@@ -217,7 +237,9 @@ def get_multiyear_default_form():
             prev = form[year-1]
             form[year] = {}
             for k, v in prev.items():
-                if any(x in k for x in ("price", "cost")):
+                if k in ("fot", "office_rent", "warehouse_income"):
+                    form[year][k] = round(prev[k] * 1.10)
+                elif any(x in k for x in ("price", "cost")):
                     form[year][k] = round(prev[k] * 1.10)
                 else:
                     form[year][k] = prev[k]
@@ -227,26 +249,26 @@ def calc_one_year(data):
     q_shifts = data["q_count"] * data["q_days"]
     q_revenue = q_shifts * data["q_price"]
     q_cost = q_shifts * data["q_cost"]
-    q_profit = q_revenue - q_cost
-
     q_extra_shifts = data["q_extra_count"] * data["q_extra_days"]
     q_extra_revenue = q_extra_shifts * data["q_extra_price"]
     q_extra_cost = q_extra_shifts * data["q_extra_cost"]
-    q_extra_profit = q_extra_revenue - q_extra_cost
 
     nq_shifts = data["nq_count"] * data["nq_days"]
     nq_revenue = nq_shifts * data["nq_price"]
     nq_cost = nq_shifts * data["nq_cost"]
-    nq_profit = nq_revenue - nq_cost
-
     nq_extra_shifts = data["nq_extra_count"] * data["nq_extra_days"]
     nq_extra_revenue = nq_extra_shifts * data["nq_extra_price"]
     nq_extra_cost = nq_extra_shifts * data["nq_extra_cost"]
-    nq_extra_profit = nq_extra_revenue - nq_extra_cost
+
+    fot = data.get("fot", 0) * 12_000  # тыс. ₽/мес × 12 × 1000
+    office_rent = data.get("office_rent", 0) * 12_000
+    warehouse_income = data.get("warehouse_income", 0) * 12_000
+
+    costs_block = fot + office_rent - warehouse_income
 
     total_revenue = q_revenue + q_extra_revenue + nq_revenue + nq_extra_revenue
-    total_cost = q_cost + q_extra_cost + nq_cost + nq_extra_cost
-    operational_profit = q_profit + q_extra_profit + nq_profit + nq_extra_profit
+    total_cost = q_cost + q_extra_cost + nq_cost + nq_extra_cost + costs_block
+    operational_profit = total_revenue - total_cost
     net_profit = operational_profit
 
     investor1_share = net_profit * 0.5 * 0.85
@@ -255,6 +277,19 @@ def calc_one_year(data):
     investor4_share = net_profit * 0.1 * 0.85
 
     return {
+        "q_shifts": q_shifts,
+        "q_revenue": q_revenue,
+        "q_cost": q_cost,
+        "q_extra_shifts": q_extra_shifts,
+        "q_extra_revenue": q_extra_revenue,
+        "q_extra_cost": q_extra_cost,
+        "nq_shifts": nq_shifts,
+        "nq_revenue": nq_revenue,
+        "nq_cost": nq_cost,
+        "nq_extra_shifts": nq_extra_shifts,
+        "nq_extra_revenue": nq_extra_revenue,
+        "nq_extra_cost": nq_extra_cost,
+        "costs_block": costs_block,
         "total_revenue": total_revenue,
         "total_cost": total_cost,
         "operational_profit": operational_profit,
@@ -265,12 +300,19 @@ def calc_one_year(data):
         "investor4_share": investor4_share,
     }
 
+
 @router.get("/multiyear", response_class=HTMLResponse)
 async def unit_economy_multiyear_form(request: Request):
     form = get_multiyear_default_form()
     return templates.TemplateResponse(
         "unit_economy_multiyear.html",
-        {"request": request, "form": form, "YEARS": YEARS, "HORIZON_METRICS": HORIZON_METRICS}
+        {
+            "request": request,
+            "form": form,
+            "YEARS": YEARS,
+            "HORIZON_METRICS": HORIZON_METRICS,
+            "COMMENTS_HORIZON": COMMENTS_HORIZON,
+        }
     )
 
 @router.post("/multiyear", response_class=HTMLResponse)
@@ -281,7 +323,8 @@ async def unit_economy_multiyear_result(request: Request):
         form[year] = {}
         for field in [
             "q_count", "q_days", "q_price", "q_cost", "q_extra_count", "q_extra_days", "q_extra_price", "q_extra_cost",
-            "nq_count", "nq_days", "nq_price", "nq_cost", "nq_extra_count", "nq_extra_days", "nq_extra_price", "nq_extra_cost"
+            "nq_count", "nq_days", "nq_price", "nq_cost", "nq_extra_count", "nq_extra_days", "nq_extra_price", "nq_extra_cost",
+            "fot", "office_rent", "warehouse_income"
         ]:
             form[year][field] = float(data.get(f"{year}_{field}", 0))
 
@@ -305,6 +348,7 @@ async def unit_economy_multiyear_result(request: Request):
             "HORIZON_METRICS": HORIZON_METRICS,
             "results_per_year": results_per_year,
             "total_by_metric": total_by_metric,
-            "ai_analysis": ai_analysis
+            "ai_analysis": ai_analysis,
+            "COMMENTS_HORIZON": COMMENTS_HORIZON,
         }
     )
