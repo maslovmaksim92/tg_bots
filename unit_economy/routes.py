@@ -11,16 +11,23 @@ router = APIRouter()
 templates = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
 
 def format_ai_analysis(text: str) -> str:
-    """Красивое форматирование SWOT/рекомендаций: жирные заголовки и списки."""
-    if not text:
-        return ""
-    text = re.sub(r'\*\*(.+?)\*\*', r'<b>\1</b>', text)
-    text = re.sub(r'(?:^|\n)[\-–] (.+)', r'<li>\1</li>', text)
-    text = re.sub(r'((<li>.+?</li>)+)', r'<ul>\1</ul>', text, flags=re.DOTALL)
-    text = re.sub(r'\n', r'<br>', text)
-    return text
-
+    ...
 templates.env.filters['format_ai_analysis'] = format_ai_analysis
+
+def humanize_millions(value):
+    try:
+        value = float(value)
+    except Exception:
+        return value
+    if abs(value) >= 1_000_000:
+        return f"{value/1_000_000:.1f} млн"
+    elif abs(value) >= 10_000:
+        return f"{value:,.0f}".replace(",", " ")
+    else:
+        return str(round(value))
+
+templates.env.filters['humanize_millions'] = humanize_millions
+
 
 def get_default_form():
     return {
