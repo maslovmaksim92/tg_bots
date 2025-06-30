@@ -163,15 +163,47 @@ def get_total_per_metric(results_per_year: Dict[int, Dict[str, Any]], YEARS: Lis
 
 def get_multiyear_default_form() -> Dict[int, Dict[str, Any]]:
     """Форма на годы с автоинкрементом для цен/стоимостей (NEW: реальные данные индексация 10%/год)."""
-    BASE = {
-        2026: dict(
-            q_count=20, q_days=247, q_price=3800, q_cost=1924,
-            q_extra_count=10, q_extra_days=124, q_extra_price=5700, q_extra_cost=3000,
-            nq_count=40, nq_days=247, nq_price=3000, nq_cost=2000,
-            nq_extra_count=10, nq_extra_days=62, nq_extra_price=4500, nq_extra_cost=4500,
-            fot=475.2, office_rent=12, warehouse_income=0,
-        ),
-    }
+BASE = {
+    2026: dict(
+        # Швеи (квалифицированные)
+        q_count=20, q_days=247, q_price=4500, q_cost=2150,
+        q_extra_count=10, q_extra_days=498, q_extra_price=6200, q_extra_cost=3250,
+        # Уборщицы (неквалифицированные)
+        nq_count=40, nq_days=247, nq_price=2900, nq_cost=2150,
+        nq_extra_count=3800, nq_extra_days=620, nq_extra_price=6200, nq_extra_cost=3250,
+        # Постоянные расходы (указывай в месяц! ФОТ и аренда)
+        fot=475, office_rent=30, warehouse_income=0,
+    ),
+    2027: dict(
+        q_count=20, q_days=249, q_price=5000, q_cost=2350,
+        q_extra_count=10, q_extra_days=498, q_extra_price=6800, q_extra_cost=3500,
+        nq_count=40, nq_days=249, nq_price=3300, nq_cost=2350,
+        nq_extra_count=4200, nq_extra_days=620, nq_extra_price=6800, nq_extra_cost=3500,
+        fot=522, office_rent=33, warehouse_income=0,
+    ),
+    2028: dict(
+        q_count=20, q_days=249, q_price=5500, q_cost=2550,
+        q_extra_count=10, q_extra_days=496, q_extra_price=7500, q_extra_cost=3800,
+        nq_count=40, nq_days=249, nq_price=3700, nq_cost=2650,
+        nq_extra_count=4500, nq_extra_days=620, nq_extra_price=7500, nq_extra_cost=3800,
+        fot=574, office_rent=36, warehouse_income=0,
+    ),
+    2029: dict(
+        q_count=20, q_days=247, q_price=6100, q_cost=2700,
+        q_extra_count=10, q_extra_days=494, q_extra_price=8200, q_extra_cost=4100,
+        nq_count=40, nq_days=247, nq_price=4100, nq_cost=2700,
+        nq_extra_count=4800, nq_extra_days=620, nq_extra_price=8200, nq_extra_cost=4100,
+        fot=632, office_rent=39, warehouse_income=0,
+    ),
+    2030: dict(
+        q_count=20, q_days=248, q_price=6800, q_cost=2950,
+        q_extra_count=10, q_extra_days=496, q_extra_price=9000, q_extra_cost=4400,
+        nq_count=40, nq_days=248, nq_price=4500, nq_cost=2950,
+        nq_extra_count=5100, nq_extra_days=620, nq_extra_price=9000, nq_extra_cost=4400,
+        fot=695, office_rent=42, warehouse_income=0,
+    ),
+}
+
     form = {}
     for i, year in enumerate(YEARS):
         if year in BASE:
