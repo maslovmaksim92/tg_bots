@@ -490,12 +490,13 @@
                     <td><input type="number" min="0" name="{{ year }}_q_cost" value="{{ form[year]['q_cost']|int_input }}"></td>
                 {% endfor %}
             </tr>
-            <tr>
-                <td>Доп. смены (чел)</td>
-                {% for year in YEARS %}
-                    <td><input type="number" min="0" name="{{ year }}_q_extra_count" value="{{ form[year]['q_extra_count']|int_input }}"></td>
-                {% endfor %}
-            </tr>
+       <tr>
+    <td>Доп. смен в год</td>
+    {% for year in YEARS %}
+        <td><input type="number" min="0" name="{{ year }}_q_extra_shifts" value="{{ form[year]['q_extra_shifts']|int_input }}"></td>
+    {% endfor %}
+</tr>
+
             <tr>
                 <td>Дней в доп. сменах</td>
                 {% for year in YEARS %}
@@ -580,30 +581,13 @@
                     <td><input type="number" min="0" name="{{ year }}_nq_cost" value="{{ form[year]['nq_cost']|int_input }}"></td>
                 {% endfor %}
             </tr>
-            <tr>
-                <td>Доп. смены (чел)</td>
-                {% for year in YEARS %}
-                    <td><input type="number" min="0" name="{{ year }}_nq_extra_count" value="{{ form[year]['nq_extra_count']|int_input }}"></td>
-                {% endfor %}
-            </tr>
-            <tr>
-                <td>Дней в доп. сменах</td>
-                {% for year in YEARS %}
-                    <td><input type="number" min="0" name="{{ year }}_nq_extra_days" value="{{ form[year]['nq_extra_days']|int_input }}"></td>
-                {% endfor %}
-            </tr>
-            <tr>
-                <td>Цена доп. смены, ₽</td>
-                {% for year in YEARS %}
-                    <td><input type="number" min="0" name="{{ year }}_nq_extra_price" value="{{ form[year]['nq_extra_price']|int_input }}"></td>
-                {% endfor %}
-            </tr>
-            <tr>
-                <td>Себест. доп. смены, ₽</td>
-                {% for year in YEARS %}
-                    <td><input type="number" min="0" name="{{ year }}_nq_extra_cost" value="{{ form[year]['nq_extra_cost']|int_input }}"></td>
-                {% endfor %}
-            </tr>
+<tr>
+    <td>Доп. смен в год</td>
+    {% for year in YEARS %}
+        <td><input type="number" min="0" name="{{ year }}_nq_extra_shifts" value="{{ form[year]['nq_extra_shifts']|int_input }}"></td>
+    {% endfor %}
+</tr>
+
         </table>
 
         <!-- Формулы расчёта под таблицей (методология) -->
@@ -617,9 +601,10 @@
                     <b>Себестоимость смены:</b> <code>(ФОТ 1 человека с налогами × 12 мес) / (Кол-во сотрудников × рабочих дней)</code>
                     <br><small>ФОТ на одного = вся сумма на всех / количество сотрудников</small>
                 </li>
-                <li>
-                    <b>Доп. смены за год:</b> <code>Кол-во сотрудников в доп. смене × доп. дней</code>
-                </li>
+    <li>
+    <b>Доп. смены за год:</b> <code>Общее число доп. смен в год</code>
+</li>
+
                 <li>
                     <b>Суммарная выручка:</b> <code>Все смены × цена смены</code>
                 </li>
