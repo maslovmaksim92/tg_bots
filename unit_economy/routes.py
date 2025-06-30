@@ -130,13 +130,17 @@ METRICS_BLOCKS = {
         ("nq_main_op_profit", "Опер прибыль (осн смены уборщ)", COMMENTS_HORIZON.get("nq_main_op_profit", "")),
         ("nq_extra_op_profit", "Опер прибыль (доп смены уборщ)", COMMENTS_HORIZON.get("nq_extra_op_profit", "")),
     ],
-    "fin": [
-        ("costs_block", "Постоянные расходы (ФОТ аренда доход склада)", COMMENTS_HORIZON.get("costs_block", "")),
-        ("total_revenue", "Итого выручка", COMMENTS_HORIZON.get("total_revenue", "")),
-        ("total_cost", "Итого расходы", COMMENTS_HORIZON.get("total_cost", "")),
-        ("total_op_profit", "Общая операционная прибыль", COMMENTS_HORIZON.get("total_op_profit", "")),
-        ("net_profit", "Чистая прибыль (после налога)", COMMENTS_HORIZON.get("net_profit", "")),
-    ]
+"fin": [
+    ("costs_block", "Постоянные расходы (ФОТ аренда доход склада)", COMMENTS_HORIZON.get("costs_block", "")),
+    ("total_revenue", "Итого выручка", COMMENTS_HORIZON.get("total_revenue", "")),
+    ("total_cost", "Итого расходы", COMMENTS_HORIZON.get("total_cost", "")),
+    ("total_op_profit", "Общая операционная прибыль", COMMENTS_HORIZON.get("total_op_profit", "")),
+    ("operational_profit", "Операционная прибыль", COMMENTS_HORIZON.get("operational_profit", "")),
+    ("tax", "Налог (15%)", "15% от операционной прибыли"),            # ADDED
+    ("vat", "НДС (5% при выручке >60 млн)", "5% при выручке свыше 60 млн"),  # ADDED
+    ("net_profit", "Чистая прибыль (после налога и НДС)", COMMENTS_HORIZON.get("net_profit", "")),
+]
+
 }
 
 def get_total_per_metric(results_per_year: Dict[int, Dict[str, Any]], YEARS: List[int]) -> Dict[str, float]:
@@ -226,16 +230,21 @@ def calc_one_year(data: Dict[str, Any]) -> Dict[str, Any]:
     nq_main_op_profit = nq_revenue - nq_cost
     nq_extra_op_profit = nq_extra_revenue - nq_extra_cost
     total_op_profit = main_op_profit + extra_op_profit + nq_main_op_profit + nq_extra_op_profit
-    net_profit = total_op_profit * 0.85  # -15% налог на прибыль
-    constant_expenses = {"fot": int(fot), "office_rent": int(office_rent)}
+    # Финансовые итоги
     total_revenue = q_revenue + q_extra_revenue + nq_revenue + nq_extra_revenue
     total_cost = q_cost + q_extra_cost + nq_cost + nq_extra_cost + costs_block
     operational_profit = total_revenue - total_cost
+    # ----- TAX & VAT LOGIC -----
+    tax = operational_profit * 0.15 if operational_profit > 0 else 0  # ADDED TAX
+    vat = total_revenue * 0.05 if total_revenue >= 60_000_000 else 0  # ADDED VAT
+    net_profit = operational_profit - tax - vat  # Перенесли сюда!
+    # ---------------------------
+    constant_expenses = {"fot": int(fot), "office_rent": int(office_rent)}
     # Инвесторы
-    investor1_share = max(int(net_profit * 0.5 * 0.85), 0)
-    investor2_share = max(int(net_profit * 0.3 * 0.85), 0)
-    investor3_share = max(int(net_profit * 0.1 * 0.85), 0)
-    investor4_share = max(int(net_profit * 0.1 * 0.85), 0)
+    investor1_share = max(int(net_profit * 0.5), 0)
+    investor2_share = max(int(net_profit * 0.3), 0)
+    investor3_share = max(int(net_profit * 0.1), 0)
+    investor4_share = max(int(net_profit * 0.1), 0)
     audit = []
     if total_revenue == 0:
         audit.append("Внимание! Выручка по году равна 0.")
@@ -266,6 +275,8 @@ def calc_one_year(data: Dict[str, Any]) -> Dict[str, Any]:
         "total_revenue": int(total_revenue),
         "total_cost": int(total_cost),
         "operational_profit": int(operational_profit),
+        "tax": int(tax),  # ADDED
+        "vat": int(vat),  # ADDED
         "net_profit": int(net_profit),
         "investor1_share": investor1_share,
         "investor2_share": investor2_share,
@@ -273,6 +284,7 @@ def calc_one_year(data: Dict[str, Any]) -> Dict[str, Any]:
         "investor4_share": investor4_share,
         "audit": audit
     }
+
 
 def ai_financial_expert_analysis(years: List[int], results: Dict[int, Dict[str, Any]]) -> Dict[str, Any]:
     summary, alerts = [], []
