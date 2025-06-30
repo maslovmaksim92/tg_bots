@@ -59,6 +59,15 @@ def humanize_money(value: Any, currency: str = "₽") -> str:
         return str(value)
 
 templates.env.filters['humanize_money'] = humanize_money
+def int_input(value):
+    """
+    Возвращает только целое число для value input type='number', без запятых и дробной части.
+    """
+    try:
+        return str(int(float(str(value).replace(',', '.'))))
+    except Exception:
+        return '0'
+templates.env.filters['int_input'] = int_input
 
 # ===============
 # Defaults & Meta
