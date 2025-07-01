@@ -379,6 +379,45 @@
             .card-section { padding: 1rem 0.3rem 1rem 0.5rem;}
             .swot-block { font-size: 1em; padding: 17px 10px;}
         }
+        /* Красивая кнопка Рассчитать */
+.calc-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 200px;
+    min-height: 54px;
+    padding: 0 38px;
+    font-size: 1.21em;
+    font-family: 'Inter', Arial, sans-serif;
+    font-weight: 600;
+    background: linear-gradient(90deg, #466de3 0%, #63a4ff 100%);
+    color: #fff;
+    border: none;
+    border-radius: 16px;
+    box-shadow: 0 6px 22px #466de33b;
+    cursor: pointer;
+    margin-top: 18px;
+    margin-bottom: 14px;
+    transition: background 0.15s, transform 0.11s, box-shadow 0.18s;
+    letter-spacing: 0.01em;
+    outline: none;
+}
+.calc-btn:hover,
+.calc-btn:focus {
+    background: linear-gradient(90deg, #345cd4 0%, #63a4ff 100%);
+    box-shadow: 0 10px 32px #466de399;
+    transform: translateY(-2px) scale(1.04);
+}
+.calc-btn span {
+    display: inline-block;
+    vertical-align: middle;
+}
+.calc-btn .calc-icon {
+    font-size: 1.35em;
+    margin-right: 14px;
+    line-height: 1;
+}
+
     </style>
     <script>
         // SVG chart for dynamics: generates mini-graph (trendline) for array of values
@@ -638,10 +677,11 @@
             </table>
 <div style="text-align:left;">
     <button type="submit" class="calc-btn">
-        <span class="calc-icon">🧮</span>
-        <span>Рассчитать</span>
+        <span style="font-size:1.15em;vertical-align:middle;">🧮</span>
+        <span style="margin-left:10px;">Рассчитать</span>
     </button>
 </div>
+
 
         </div>
     </form>
