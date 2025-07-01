@@ -527,7 +527,18 @@
             <b>AI-вердикт:</b>
             <span class="ai-grade">{{ ai_analysis.grade or "S+" }}</span>
             <span class="ai-confidence">Уверенность: <b>{{ ai_analysis.confidence or "99.7%" }}</b></span>
-            <span class="ai-tonality">Тональность: <b>{{ ai_analysis.tonality or "вдохновляющая" }}</b></span>
+            <span class="ai-tonality">
+    Тональность: <b>
+        {% if net_profit_growth > 0 %}
+            финансово устойчивая (чистая прибыль +{{ net_profit_growth }}% год к году)
+        {% elif net_profit_growth < 0 %}
+            требует оптимизации (снижение прибыли {{ net_profit_growth }}% год к году)
+        {% else %}
+            стабильная (без изменений)
+        {% endif %}
+    </b>
+</span>
+
             <span class="verdict-quote">{{ ai_analysis.quote or "ROI — космический, риски минимальны" }}</span>
             <button onclick="playAICommentary()">🔊 Слушать AI-комментарий</button>
         </div>
