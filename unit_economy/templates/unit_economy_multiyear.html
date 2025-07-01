@@ -883,68 +883,108 @@
 
     {% if fin_expert %}
     <div class="finexpert-block">
-        <b>AI-финансовая экспертиза:</b>
-        <ul>
-            {% for t in fin_expert.trend %}
-                <li>{{ t }}</li>
-            {% endfor %}
-        </ul>
-        <b>Ключевое заключение:</b> {{ fin_expert.expert_opinion }}
-        {% if fin_expert.alerts %}
-            <div class="alert">
-                <b>Алерты:</b>
-                <ul>
-                    {% for a in fin_expert.alerts %}
-                        <li>{{ a }}</li>
-                                    {% set year = t.split(":")[0]|int if ":" in t else None %}
-                {% if year and fin_expert.drop_causes and year in fin_expert.drop_causes %}
-                    <ul style="margin:0 0 0.6em 0.7em;">
-                        <li><b>Причины падения прибыли:</b>
-                            <ul>
-                                {% for reason in fin_expert.drop_causes[year] %}
-                                    <li>{{ reason }}</li>
-                                {% endfor %}
-                            </ul>
-                        </li>
-                        {% if fin_expert.drop_recommendations[year] %}
-                        <li><b>Рекомендации:</b>
-                            <ul>
-                                {% for r in fin_expert.drop_recommendations[year] %}
-                                    <li>{{ r }}</li>
-                                {% endfor %}
-                            </ul>
-                        </li>
-                        {% endif %}
-                    </ul>
+    <b>AI-финансовая экспертиза:</b>
+    <ul style="margin-bottom:1.2em;">
+        {% set has_drop = false %}
+        {% for t in fin_expert.trend %}
+            {% set is_up = "рост" in t|lower or "увелич" in t|lower %}
+            {% set is_down = "падени" in t|lower or "сниже" in t|lower %}
+            <li style="margin-bottom:0.7em; font-size:1.11em;">
+                {% if is_up %}
+                    <span class="trend-up" title="Рост">▲</span>
+                {% elif is_down %}
+                    <span class="trend-down" title="Падение">▼</span>
+                {% else %}
+                    <span style="color:#888">•</span>
                 {% endif %}
-
-                    {% endfor %}
+                <b>{{ t }}</b>
+            </li>
+            {# Причины падения и рекомендации к каждому году тренда #}
+            {% set year = t.split(":")[0]|int if ":" in t else None %}
+            {% if year and fin_expert.drop_causes and year in fin_expert.drop_causes %}
+                {% set has_drop = true %}
+                <ul style="margin:0 0 0.4em 1.2em; font-size:1.03em;">
+                    <li style="color:#b93236;"><b>Причины падения прибыли:</b>
+                        <ul>
+                            {% for reason in fin_expert.drop_causes[year] %}
+                                <li>{{ reason }}</li>
+                            {% endfor %}
+                        </ul>
+                    </li>
+                    {% if fin_expert.drop_recommendations[year] %}
+                    <li style="color:#208a4d;"><b>AI-рекомендации для стабилизации:</b>
+                        <ul>
+                            {% for r in fin_expert.drop_recommendations[year] %}
+                                <li>{{ r }}</li>
+                            {% endfor %}
+                        </ul>
+                    </li>
+                    {% endif %}
                 </ul>
-            </div>
+            {% endif %}
+        {% endfor %}
+        {% if not has_drop %}
+            <li style="color:#1a8e4a; margin-top:0.8em; font-weight:600;">
+                За весь период <span style="font-size:1.13em;">падения чистой прибыли не выявлено</span>. Финансовая динамика стабильна.
+            </li>
         {% endif %}
-    </div>
-    {% endif %}
+    </ul>
 
-    {% if ai_analysis %}
-    <div class="swot-block">
-        <b>AI-анализ:</b><br>
-        <span>{{ ai_analysis|format_ai_analysis|safe }}</span>
+    <div style="background:#eaf0fd; border-radius:10px; padding:10px 17px 10px 17px; margin-bottom:10px; color:#274981; font-size:1.09em;">
+        <b>AI-резюме по трендам:</b>
+        <ul style="margin:0.35em 0 0 0.9em; padding-left:0;">
+            {% for t in fin_expert.trend if "рост" in t|lower %}
+                <li><b>Позитивный тренд:</b> {{ t }}</li>
+            {% endfor %}
+            {% for t in fin_expert.trend if "падени" in t|lower or "сниже" in t|lower %}
+                <li><b>Требует внимания:</b> {{ t }}</li>
+            {% endfor %}
+            {% if not fin_expert.trend|select("search","рост|падени|сниже")|list %}
+                <li>Тренды стабильные, отклонения не зафиксированы.</li>
+            {% endif %}
+        </ul>
     </div>
-    {% endif %}
 
-    {% if ai_investor %}
-    <div class="finexpert-block" style="border:2.3px solid #446cd2; background:#f4f8ff; color:#1b3c61;">
-        <b>Аналитика для инвестора (AI-директор):</b>
-        <div style="margin:1.1em 0 0.6em 0;">
-            <span>{{ ai_investor|format_ai_analysis|safe }}</span>
+    <b>Ключевое заключение:</b>
+    <span style="background:#e2fff6; border-radius:6px; padding:2px 7px; font-weight:500; color:#13725d;">
+        {{ fin_expert.expert_opinion }}
+    </span>
+
+    {% if fin_expert.alerts %}
+        <div class="alert" style="margin-top:1.1em;">
+            <b>Алерты:</b>
+            <ul>
+                {% for a in fin_expert.alerts %}
+                    <li style="{% if 'превышают' in a %}color:#b93236; font-weight:600;{% endif %}">{{ a }}</li>
+                {% endfor %}
+            </ul>
         </div>
-    </div>
     {% endif %}
+</div>
 
-    {% if response_time %}
-        <div style="color:#8195b8; font-size:1.04em; margin-top:10px;">Время обработки: <b>{{ response_time }}</b></div>
-    {% endif %}
+{% if ai_analysis %}
+<div class="swot-block">
+    <b>AI-анализ:</b><br>
+    <span>{{ ai_analysis|format_ai_analysis|safe }}</span>
+</div>
+{% endif %}
 
+{% if ai_investor %}
+<div class="finexpert-block" style="border:2.3px solid #446cd2; background:#f4f8ff; color:#1b3c61;">
+    <b>Аналитика для инвестора (AI-директор):</b>
+    <div style="margin:1.1em 0 0.6em 0;">
+        <span>{{ ai_investor|format_ai_analysis|safe }}</span>
     </div>
+</div>
+{% endif %}
+
+{% if response_time %}
+    <div style="color:#8195b8; font-size:1.04em; margin-top:10px;">
+        Время обработки: <b>{{ response_time }}</b>
+    </div>
+{% endif %}
+
+</div>
 </body>
 </html>
+
