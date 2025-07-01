@@ -7,7 +7,14 @@ import logging
 from typing import Any, Dict, List, Optional
 from datetime import datetime
 import time
-
+def calc_ndfl_by_scale(amount: float) -> float:
+    """
+    Расчет НДФЛ по стандартной ставке 15%.
+    Если потребуется прогрессивная шкала — сообщи!
+    """
+    if amount <= 0:
+        return 0.0
+    return amount * 0.15
 from .economics import calculate_personnel_economy, calculate_extra_shift_block
 from .ai_analysis import ai_analyze_unit_economy, ai_analyze_unit_economy_multiyear
 
