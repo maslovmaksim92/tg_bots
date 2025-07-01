@@ -204,26 +204,28 @@ def get_multiyear_default_form() -> Dict[int, Dict[str, Any]]:
     return form
 
 # === КОРРЕКТНЫЙ МУЛЬТИ-ГОДОВОЙ НДС ===
-def calc_vat_multiyear(years: List[int], total_revenue_by_year: Dict[int, float], threshold: float = 60_000_000, vat_rate: float = 0.05) -> Dict[int, float]:
+def calc_vat_multiyear(
+    years: List[int], 
+    total_revenue_by_year: Dict[int, float], 
+    threshold: float = 60_000_000, 
+    vat_rate: float = 0.05
+) -> Dict[int, float]:
     nds = {}
     vat_started = False
-    cum_revenue = 0
     for idx, year in enumerate(years):
         revenue = total_revenue_by_year[year]
         if not vat_started:
-            if cum_revenue + revenue > threshold:
-                monthly = revenue / 12
-                left = threshold - cum_revenue
-                months_without_vat = int(left // monthly)
-                months_with_vat = 12 - months_without_vat
-                nds[year] = monthly * months_with_vat * vat_rate
+            if revenue > threshold:
+                # В год превышения — только на разницу
+                nds[year] = (revenue - threshold) * vat_rate
                 vat_started = True
             else:
                 nds[year] = 0
         else:
+            # После превышения — на всю выручку
             nds[year] = revenue * vat_rate
-        cum_revenue += revenue
     return nds
+
 
 def calc_vat_by_month(total_revenue: float, prev_revenue: float, months: int = 12, threshold: float = 60_000_000):
     """Старая функция, больше не используется для мульти-летнего расчёта."""
@@ -432,13 +434,17 @@ async def unit_economy_multiyear_result(request: Request):
                 audit_messages.append(f"{year}: ФОТ вырос более чем на 15% к прошлому году! Проверьте значения.")
         last_fot = form[year]["fot"]
 
-    # === Новый корректный мульти-летний расчет НДС ===
-    # 1. Получаем выручку по годам
-    total_revenue_by_year = {year: calc_one_year(form[year])["total_revenue"] for year in YEARS}
-    # 2. Корректно считаем НДС для каждого года
-    vat_by_year = calc_vat_multiyear(YEARS, total_revenue_by_year)
-    # 3. Итоговые результаты с НДС для каждого года
-    results_per_year: Dict[int, Dict[str, Any]] = {year: calc_one_year(form[year], vat_value=vat_by_year[year]) for year in YEARS}
+# === Новый корректный мульти-летний расчет НДС ===
+# 1. Получаем выручку по годам
+total_revenue_by_year = {year: calc_one_year(form[year])["total_revenue"] for year in YEARS}
+# 2. Корректно считаем НДС для каждого года
+vat_by_year = calc_vat_multiyear(YEARS, total_revenue_by_year)
+# 3. Итоговые результаты с НДС для каждого года
+results_per_year: Dict[int, Dict[str, Any]] = {
+    year: calc_one_year(form[year], vat_value=vat_by_year[year]) 
+    for year in YEARS
+}
+
 
     investors_table = []
     cum_inv1 = cum_inv2 = cum_inv3 = cum_inv4 = 0
