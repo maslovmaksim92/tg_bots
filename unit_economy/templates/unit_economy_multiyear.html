@@ -497,12 +497,7 @@
     {% endfor %}
 </tr>
 
-            <tr>
-                <td>Дней в доп. сменах</td>
-                {% for year in YEARS %}
-                    <td><input type="number" min="0" name="{{ year }}_q_extra_days" value="{{ form[year]['q_extra_days']|int_input }}"></td>
-                {% endfor %}
-            </tr>
+
             <tr>
                 <td>Цена доп. смены, ₽</td>
                 {% for year in YEARS %}
@@ -581,12 +576,7 @@
                 <td><input type="number" min="0" name="{{ year }}_nq_cost" value="{{ form[year]['nq_cost']|int_input }}"></td>
             {% endfor %}
         </tr>
-        <tr>
-            <td>Доп. смен в год</td>
-            {% for year in YEARS %}
-                <td><input type="number" min="0" name="{{ year }}_nq_extra_shifts" value="{{ form[year]['nq_extra_shifts']|int_input }}"></td>
-            {% endfor %}
-        </tr>
+
         <tr>
             <td>Дней в доп. сменах</td>
             {% for year in YEARS %}
