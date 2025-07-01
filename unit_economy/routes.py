@@ -206,45 +206,52 @@ def get_multiyear_default_form() -> Dict[int, Dict[str, Any]]:
 
 def calc_one_year(data: Dict[str, Any]) -> Dict[str, Any]:
     # Основные смены
-    q_shifts = int(data["q_count"]) * int(data["q_days"])
-    q_revenue = q_shifts * float(data["q_price"])
-    q_cost = q_shifts * float(data["q_cost"])
-    nq_shifts = int(data["nq_count"]) * int(data["nq_days"])
-    nq_revenue = nq_shifts * float(data["nq_price"])
-    nq_cost = nq_shifts * float(data["nq_cost"])
-    # Доп. смены: теперь только "общее число смен за год"
-    q_extra_shifts = int(data["q_extra_shifts"])
-    q_extra_revenue = q_extra_shifts * float(data["q_extra_price"])
-    q_extra_cost = q_extra_shifts * float(data["q_extra_cost"])
-    nq_extra_shifts = int(data["nq_extra_shifts"])
-    nq_extra_revenue = nq_extra_shifts * float(data["nq_extra_price"])
-    nq_extra_cost = nq_extra_shifts * float(data["nq_extra_cost"])
+    q_shifts = int(float(data.get("q_count", 0))) * int(float(data.get("q_days", 0)))
+    q_revenue = q_shifts * float(data.get("q_price", 0))
+    q_cost = q_shifts * float(data.get("q_cost", 0))
+
+    nq_shifts = int(float(data.get("nq_count", 0))) * int(float(data.get("nq_days", 0)))
+    nq_revenue = nq_shifts * float(data.get("nq_price", 0))
+    nq_cost = nq_shifts * float(data.get("nq_cost", 0))
+
+    # Доп. смены: всегда обрабатываем 0, если пусто
+    q_extra_shifts = int(float(data.get("q_extra_shifts", 0)))
+    q_extra_revenue = q_extra_shifts * float(data.get("q_extra_price", 0))
+    q_extra_cost = q_extra_shifts * float(data.get("q_extra_cost", 0))
+    nq_extra_shifts = int(float(data.get("nq_extra_shifts", 0)))
+    nq_extra_revenue = nq_extra_shifts * float(data.get("nq_extra_price", 0))
+    nq_extra_cost = nq_extra_shifts * float(data.get("nq_extra_cost", 0))
+
     # Фиксированные расходы
     fot = float(data.get("fot", 0)) * 12000
     office_rent = float(data.get("office_rent", 0)) * 12000
     warehouse_income = float(data.get("warehouse_income", 0)) * 12000
     costs_block = fot + office_rent - warehouse_income
+
     # Прибыль по сменам
     main_op_profit = q_revenue - q_cost
     extra_op_profit = q_extra_revenue - q_extra_cost
     nq_main_op_profit = nq_revenue - nq_cost
     nq_extra_op_profit = nq_extra_revenue - nq_extra_cost
     total_op_profit = main_op_profit + extra_op_profit + nq_main_op_profit + nq_extra_op_profit
+
     # Финансовые итоги
     total_revenue = q_revenue + q_extra_revenue + nq_revenue + nq_extra_revenue
     total_cost = q_cost + q_extra_cost + nq_cost + nq_extra_cost + costs_block
     operational_profit = total_revenue - total_cost
+
     # ----- TAX & VAT LOGIC -----
-    tax = operational_profit * 0.15 if operational_profit > 0 else 0  # ADDED TAX
-    vat = total_revenue * 0.05 if total_revenue >= 60_000_000 else 0  # ADDED VAT
-    net_profit = operational_profit - tax - vat  # Перенесли сюда!
-    # ---------------------------
-    constant_expenses = {"fot": int(fot), "office_rent": int(office_rent)}
+    tax = operational_profit * 0.15 if operational_profit > 0 else 0
+    vat = total_revenue * 0.05 if total_revenue > 60_000_000 else 0   # <= исправлено тут!
+    net_profit = operational_profit - tax - vat
+
     # Инвесторы
-    investor1_share = max(int(net_profit * 0.5), 0)
-    investor2_share = max(int(net_profit * 0.3), 0)
-    investor3_share = max(int(net_profit * 0.1), 0)
-    investor4_share = max(int(net_profit * 0.1), 0)
+    investor1_share = int(max(net_profit * 0.5, 0))
+    investor2_share = int(max(net_profit * 0.3, 0))
+    investor3_share = int(max(net_profit * 0.1, 0))
+    investor4_share = int(max(net_profit * 0.1, 0))
+
+    # Аудит
     audit = []
     if total_revenue == 0:
         audit.append("Внимание! Выручка по году равна 0.")
@@ -252,6 +259,9 @@ def calc_one_year(data: Dict[str, Any]) -> Dict[str, Any]:
         audit.append("Внимание! Чистая прибыль по году отрицательная!")
     if costs_block > total_revenue * 0.07:
         audit.append("Прочие расходы превышают 7% выручки — пересмотри расходы!")
+
+    # Итог
+    constant_expenses = {"fot": int(fot), "office_rent": int(office_rent)}
     return {
         "q_shifts": int(q_shifts),
         "q_revenue": int(q_revenue),
@@ -275,8 +285,8 @@ def calc_one_year(data: Dict[str, Any]) -> Dict[str, Any]:
         "total_revenue": int(total_revenue),
         "total_cost": int(total_cost),
         "operational_profit": int(operational_profit),
-        "tax": int(tax),  # ADDED
-        "vat": int(vat),  # ADDED
+        "tax": int(tax),
+        "vat": int(vat),
         "net_profit": int(net_profit),
         "investor1_share": investor1_share,
         "investor2_share": investor2_share,
@@ -284,6 +294,7 @@ def calc_one_year(data: Dict[str, Any]) -> Dict[str, Any]:
         "investor4_share": investor4_share,
         "audit": audit
     }
+
 
 
 def ai_financial_expert_analysis(years: List[int], results: Dict[int, Dict[str, Any]]) -> Dict[str, Any]:
