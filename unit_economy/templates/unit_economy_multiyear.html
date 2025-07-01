@@ -795,26 +795,35 @@
             {% for year in YEARS %}<th>{{ year }}</th>{% endfor %}
             <th>Комментарий к расчету</th>
         </tr>
-        {% for metric, label, comment in METRICS_BLOCKS['fin'] %}
-        <tr>
-            <td>{{ label }}</td>
-            {% for year in YEARS %}
-                <td>
-                    {% set val = results_per_year[year][metric] %}
-                    {{ val | humanize_millions }}
-                    {% if loop.index0 > 0 and results_per_year[YEARS[loop.index0]] and results_per_year[YEARS[loop.index0-1]] %}
-                        {% set prev = results_per_year[YEARS[loop.index0-1]][metric] %}
-                        {% if val > prev %}
-                            <span class="trend-up trend-icon" title="Рост по сравнению с прошлым годом">↑</span>
-                        {% elif val < prev %}
-                            <span class="trend-down trend-icon" title="Падение по сравнению с прошлым годом">↓</span>
-                        {% endif %}
+ {% for metric, label, comment in METRICS_BLOCKS['fin'] %}
+<tr>
+    <td>{{ label }}</td>
+    {% for year in YEARS %}
+        <td>
+            {% set val = results_per_year[year][metric] %}
+            {{ val | humanize_millions }}
+            {% if metric == "vat" %}
+                {# Визуальная подсказка о превышении #}
+                {% if val > 0 and results_per_year[year]["total_revenue"] > 60000000 %}
+                    {% if results_per_year[YEARS[loop.index0-1]]["total_revenue"] <= 60000000 %}
+                        <span class="trend-up trend-icon" title="НДС начислен только на сумму превышения порога 60 млн (этот год)">▲</span>
+                    {% else %}
+                        <span class="trend-up trend-icon" title="НДС на всю выручку (порог был превышен ранее)">✔</span>
                     {% endif %}
-                </td>
-            {% endfor %}
-            <td class="comment-col">{{ comment }}</td>
-        </tr>
-        {% endfor %}
+                {% endif %}
+            {% endif %}
+        </td>
+    {% endfor %}
+    <td class="comment-col">
+        {% if metric == "vat" %}
+            <b>5% начисляется только на сумму превышения 60 млн (в год превышения), далее — на всю выручку</b>
+        {% else %}
+            {{ comment }}
+        {% endif %}
+    </td>
+</tr>
+{% endfor %}
+
         {% if results_per_year[YEARS[0]].npv is defined %}
         <tr>
             <td>NPV (чистая приведённая стоимость)</td>
