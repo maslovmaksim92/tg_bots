@@ -881,8 +881,8 @@
     </div>
     {% endif %}
 
-    {% if fin_expert %}
-    <div class="finexpert-block">
+{% if fin_expert %}
+<div class="finexpert-block">
 <b>AI-финансовая экспертиза:</b>
 <div style="margin-bottom:1.3em;">
     <ul style="margin-bottom:1.25em; padding-left:1.2em;">
@@ -1022,6 +1022,9 @@
             Время обработки: <b>{{ response_time }}</b>
         </div>
     {% endif %}
+</div>
+{% endif %}
+
 </div>
 </body>
 </html>
