@@ -896,6 +896,28 @@
                 <ul>
                     {% for a in fin_expert.alerts %}
                         <li>{{ a }}</li>
+                                    {% set year = t.split(":")[0]|int if ":" in t else None %}
+                {% if year and fin_expert.drop_causes and year in fin_expert.drop_causes %}
+                    <ul style="margin:0 0 0.6em 0.7em;">
+                        <li><b>Причины падения прибыли:</b>
+                            <ul>
+                                {% for reason in fin_expert.drop_causes[year] %}
+                                    <li>{{ reason }}</li>
+                                {% endfor %}
+                            </ul>
+                        </li>
+                        {% if fin_expert.drop_recommendations[year] %}
+                        <li><b>Рекомендации:</b>
+                            <ul>
+                                {% for r in fin_expert.drop_recommendations[year] %}
+                                    <li>{{ r }}</li>
+                                {% endfor %}
+                            </ul>
+                        </li>
+                        {% endif %}
+                    </ul>
+                {% endif %}
+
                     {% endfor %}
                 </ul>
             </div>
