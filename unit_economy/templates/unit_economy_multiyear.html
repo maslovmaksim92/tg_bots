@@ -662,68 +662,95 @@
                 {% endif %}
             </script>
         </div>
-        <!-- Квалифицированный персонал -->
-        <div class="results-block">
-            <div class="results-block-title">Квалифицированный персонал (швеи)</div>
-            <table class="results-table">
-                <tr>
-                    <th>Показатель</th>
-                    {% for year in YEARS %}<th>{{ year }}</th>{% endfor %}
-                    <th>Комментарий к расчету</th>
-                </tr>
-                {% for metric, label, comment in METRICS_BLOCKS['q'] %}
-                <tr>
-                    <td>{{ label }}</td>
-                    {% for year in YEARS %}
-                        <td>
-                            {% set val = results_per_year[year][metric] %}
-                            {{ val | humanize_millions }}
-                            {% if loop.index0 > 0 and results_per_year[YEARS[loop.index0]] and results_per_year[YEARS[loop.index0-1]] %}
-                                {% set prev = results_per_year[YEARS[loop.index0-1]][metric] %}
-                                {% if val > prev %}
-                                    <span class="trend-up trend-icon" title="Рост по сравнению с прошлым годом">↑</span>
-                                {% elif val < prev %}
-                                    <span class="trend-down trend-icon" title="Падение по сравнению с прошлым годом">↓</span>
-                                {% endif %}
-                            {% endif %}
-                        </td>
-                    {% endfor %}
-                    <td class="comment-col">{{ comment }}</td>
-                </tr>
-                {% endfor %}
-            </table>
-        </div>
-        <!-- Неквалифицированный персонал -->
-        <div class="results-block">
-            <div class="results-block-title">Неквалифицированный персонал (уборщицы)</div>
-            <table class="results-table">
-                <tr>
-                    <th>Показатель</th>
-                    {% for year in YEARS %}<th>{{ year }}</th>{% endfor %}
-                    <th>Комментарий к расчету</th>
-                </tr>
-                {% for metric, label, comment in METRICS_BLOCKS['nq'] %}
-                <tr>
-                    <td>{{ label }}</td>
-                    {% for year in YEARS %}
-                        <td>
-                            {% set val = results_per_year[year][metric] %}
-                            {{ val | humanize_millions }}
-                            {% if loop.index0 > 0 and results_per_year[YEARS[loop.index0]] and results_per_year[YEARS[loop.index0-1]] %}
-                                {% set prev = results_per_year[YEARS[loop.index0-1]][metric] %}
-                                {% if val > prev %}
-                                    <span class="trend-up trend-icon" title="Рост по сравнению с прошлым годом">↑</span>
-                                {% elif val < prev %}
-                                    <span class="trend-down trend-icon" title="Падение по сравнению с прошлым годом">↓</span>
-                                {% endif %}
-                            {% endif %}
-                        </td>
-                    {% endfor %}
-                    <td class="comment-col">{{ comment }}</td>
-                </tr>
-                {% endfor %}
-            </table>
-        </div>
+<!-- Квалифицированный персонал -->
+<div class="results-block">
+    <div class="results-block-title">Квалифицированный персонал (швеи)</div>
+    <table class="results-table">
+        <tr>
+            <th>Показатель</th>
+            {% for year in YEARS %}<th>{{ year }}</th>{% endfor %}
+            <th>Комментарий к расчету</th>
+        </tr>
+        {% for metric, label, comment in METRICS_BLOCKS['q'] %}
+        <tr>
+            <td>{{ label }}</td>
+            {% for year in YEARS %}
+                <td>
+                    {% set val = results_per_year[year][metric] %}
+                    {{ val | humanize_millions }}
+                    {% if loop.index0 > 0 and results_per_year[YEARS[loop.index0]] and results_per_year[YEARS[loop.index0-1]] %}
+                        {% set prev = results_per_year[YEARS[loop.index0-1]][metric] %}
+                        {% if val > prev %}
+                            <span class="trend-up trend-icon" title="Рост по сравнению с прошлым годом">↑</span>
+                        {% elif val < prev %}
+                            <span class="trend-down trend-icon" title="Падение по сравнению с прошлым годом">↓</span>
+                        {% endif %}
+                    {% endif %}
+                </td>
+            {% endfor %}
+            <td class="comment-col">{{ comment }}</td>
+        </tr>
+        {% endfor %}
+        <tr class="results-section-sep">
+            <td><b>ИТОГО (швеи):</b></td>
+            {% for year in YEARS %}
+                <td>
+                    <b>
+                        В: {{ results_per_year[year].q_total_revenue | humanize_millions }},
+                        Р: {{ results_per_year[year].q_total_cost | humanize_millions }},
+                        П: {{ results_per_year[year].q_total_profit | humanize_millions }}
+                    </b>
+                </td>
+            {% endfor %}
+            <td class="comment-col"><b>Сумма: выручка/расходы/прибыль за все смены швей (осн+доп)</b></td>
+        </tr>
+    </table>
+</div>
+<!-- Неквалифицированный персонал -->
+<div class="results-block">
+    <div class="results-block-title">Неквалифицированный персонал (уборщицы)</div>
+    <table class="results-table">
+        <tr>
+            <th>Показатель</th>
+            {% for year in YEARS %}<th>{{ year }}</th>{% endfor %}
+            <th>Комментарий к расчету</th>
+        </tr>
+        {% for metric, label, comment in METRICS_BLOCKS['nq'] %}
+        <tr>
+            <td>{{ label }}</td>
+            {% for year in YEARS %}
+                <td>
+                    {% set val = results_per_year[year][metric] %}
+                    {{ val | humanize_millions }}
+                    {% if loop.index0 > 0 and results_per_year[YEARS[loop.index0]] and results_per_year[YEARS[loop.index0-1]] %}
+                        {% set prev = results_per_year[YEARS[loop.index0-1]][metric] %}
+                        {% if val > prev %}
+                            <span class="trend-up trend-icon" title="Рост по сравнению с прошлым годом">↑</span>
+                        {% elif val < prev %}
+                            <span class="trend-down trend-icon" title="Падение по сравнению с прошлым годом">↓</span>
+                        {% endif %}
+                    {% endif %}
+                </td>
+            {% endfor %}
+            <td class="comment-col">{{ comment }}</td>
+        </tr>
+        {% endfor %}
+        <tr class="results-section-sep">
+            <td><b>ИТОГО (уборщицы):</b></td>
+            {% for year in YEARS %}
+                <td>
+                    <b>
+                        В: {{ results_per_year[year].nq_total_revenue | humanize_millions }},
+                        Р: {{ results_per_year[year].nq_total_cost | humanize_millions }},
+                        П: {{ results_per_year[year].nq_total_profit | humanize_millions }}
+                    </b>
+                </td>
+            {% endfor %}
+            <td class="comment-col"><b>Сумма: выручка/расходы/прибыль за все смены уборщиц (осн+доп)</b></td>
+        </tr>
+    </table>
+</div>
+
         <!-- Финансовые результаты -->
         <div class="results-block">
             <div class="results-block-title">Финансовые результаты</div>
