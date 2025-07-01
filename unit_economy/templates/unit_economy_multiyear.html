@@ -883,8 +883,24 @@
 
 {% if fin_expert %}
 <div class="finexpert-block">
-<b>AI-финансовая экспертиза:</b>
-<div style="margin-bottom:1.3em;">
+
+    <!-- Мини-график динамики чистой прибыли -->
+    <div style="margin-bottom:0.9em;">
+        <b>Динамика чистой прибыли:</b>
+        <svg id="miniGraphNetProfitAI" width="150" height="30" style="vertical-align:middle; margin-left:15px;"></svg>
+        <script>
+            {% if results_per_year %}
+            var netProfits = [
+                {% for year in YEARS %}
+                    {{ results_per_year[year]["net_profit"] }},
+                {% endfor %}
+            ];
+            renderMiniGraph('miniGraphNetProfitAI', netProfits);
+            {% endif %}
+        </script>
+    </div>
+
+    <!-- Список трендов с цветовой индикацией и раскрытием причин -->
     <ul style="margin-bottom:1.25em; padding-left:1.2em;">
         {% set has_drop = false %}
         {% set years_growth = [] %}
@@ -893,12 +909,12 @@
         {% for t in fin_expert.trend %}
             {% set is_up = "рост" in t|lower or "увелич" in t|lower %}
             {% set is_down = "падени" in t|lower or "сниже" in t|lower %}
-            <li style="margin-bottom:0.5em; font-size:1.13em; display:flex; align-items:center;">
+            <li style="margin-bottom:0.5em; font-size:1.13em; display:flex; align-items:center; background:{% if is_up %}#eaffea{% elif is_down %}#fff1f3{% else %}#f4f8fc{% endif %}; border-radius:7px; padding:2px 7px;">
                 {% if is_up %}
-                    <span class="trend-up" title="Рост" style="margin-right:6px; font-size:1.15em;">📈</span>
+                    <span class="trend-up" title="Рост" style="margin-right:6px; font-size:1.16em;">▲</span>
                     {% set _ = years_growth.append(loop.index0+1) %}
                 {% elif is_down %}
-                    <span class="trend-down" title="Падение" style="margin-right:6px; font-size:1.15em;">📉</span>
+                    <span class="trend-down" title="Падение" style="margin-right:6px; font-size:1.16em;">▼</span>
                     {% set has_drop = true %}
                     {% set _ = years_fall.append(loop.index0+1) %}
                 {% else %}
@@ -907,7 +923,6 @@
                 {% endif %}
                 <b>{{ t }}</b>
             </li>
-            {# Динамически раскрываем причины и рекомендации #}
             {% set year = t.split(":")[0]|int if ":" in t else None %}
             {% if year and fin_expert.drop_causes and year in fin_expert.drop_causes %}
                 <ul style="margin:0.10em 0 0.45em 1.45em; font-size:1.05em; border-left:3px solid #fa797d38; padding-left:0.9em;">
@@ -930,7 +945,6 @@
                 </ul>
             {% endif %}
         {% endfor %}
-        {# Нет падений за период #}
         {% if not has_drop %}
             <li style="color:#208a4d; margin-top:0.8em; font-weight:600; font-size:1.12em;">
                 За весь анализируемый период <span style="font-size:1.13em;">падения чистой прибыли не выявлено</span>. 
@@ -939,6 +953,7 @@
         {% endif %}
     </ul>
 
+    <!-- Insight Summary по годам -->
     <div style="background:#eaf0fd; border-radius:10px; padding:13px 20px 10px 22px; margin-bottom:10px; color:#274981; font-size:1.12em; border-left:4px solid #466de3;">
         <b style="font-size:1.11em;">AI Insight Summary (кратко):</b>
         <table style="width:100%; border-collapse:collapse; margin-top:0.5em; font-size:1em;">
@@ -964,64 +979,78 @@
         </div>
     </div>
 
+    <!-- Ключевое AI-заключение -->
     <b>Ключевое заключение:</b>
     <span style="background:#e2fff6; border-radius:6px; padding:4px 13px; font-weight:600; color:#13725d; font-size:1.14em;">
         {{ fin_expert.expert_opinion }}
     </span>
-    
+
+    <!-- Алерты и критичность -->
     {% if fin_expert.alerts %}
         <div class="alert" style="margin-top:1.1em;">
             <b>Алерты:</b>
             <ul>
                 {% for a in fin_expert.alerts %}
-                    <li style="{% if 'превышают' in a or 'критич' in a or 'внимание' in a %}color:#b93236; font-weight:600;{% endif %}">
-                        ⚠️ {{ a }}
+                    <li style="{% if 'превышают' in a or 'критич' in a or 'внимание' in a %}color:#b93236; font-weight:600;{% elif 'рекомендация' in a %}color:#208a4d;{% else %}color:#a0761e;{% endif %}">
+                        {% if 'превышают' in a or 'критич' in a or 'внимание' in a %}❗️{% elif 'рекомендация' in a %}✅{% else %}⚠️{% endif %} {{ a }}
                     </li>
                 {% endfor %}
             </ul>
         </div>
     {% endif %}
 
-    {# WOW-блок: SWOT #}
+    <!-- WOW-блок: Top-3 SWOT -->
     {% if ai_analysis %}
         <div class="swot-block" style="margin-top:1.4em;">
-            <b>AI SWOT-анализ:</b>
-            <div style="margin-top:0.5em;">
-                <span>{{ ai_analysis|format_ai_analysis|safe }}</span>
+            <b>Top-3 AI SWOT-фактора:</b>
+            <div style="margin-top:0.7em;">
+                <ul>
+                    {% for line in ai_analysis.split('\n') if loop.index0 < 3 %}
+                        <li>{{ line }}</li>
+                    {% endfor %}
+                </ul>
             </div>
+            <b style="display:block; margin-top:1.2em;">AI SWOT-анализ (полностью):</b>
+            <span>{{ ai_analysis|format_ai_analysis|safe }}</span>
         </div>
     {% endif %}
 
-    {# WOW-блок: Инвесторская аналитика #}
-    {% if ai_investor %}
-    <div class="finexpert-block" style="border:2.5px solid #446cd2; background:#f7faff; color:#1b3c61; margin-top:1.5em;">
-        <b>Инвесторская аналитика (AI-директор):</b>
-        <div style="margin:1.1em 0 0.6em 0;">
-            <span>{{ ai_investor|format_ai_analysis|safe }}</span>
-        </div>
-        <div style="margin:1.1em 0 0.5em 0; color:#446cd2; font-size:1.08em;">
-            <b>Action Steps:</b>
-            <ul style="margin:0.3em 0 0 1.0em;">
-                <li>Внедрить рекомендованные AI меры для максимизации прибыли</li>
-                <li>Контролировать риски по алертам и трендам</li>
-                <li>Регулярно обновлять сценарий PnL и стресс-тестировать новые стратегии</li>
-                <li>Использовать AI-мониторинг для раннего выявления угроз</li>
-            </ul>
-        </div>
-        <div style="margin:0.5em 0 0 0; font-size:1.07em; color:#13725d;">
-            <b>Инвестиционный Verdict:</b> <span style="font-weight:500;">Высокая инвестиционная привлекательность при соблюдении AI-рекомендаций</span>
-        </div>
-        <div style="margin:1em 0 0 0; color:#8098c8; font-size:0.96em;">
-            <i>"Технологии не заменяют человека, но усиливают его в 10 раз". — AI Advisory</i>
-        </div>
+    <!-- Action Steps -->
+    <div style="margin:1.1em 0 0.5em 0; color:#446cd2; font-size:1.10em; border-left:4px solid #466de3; padding-left:1.1em; background:#eef3fc; border-radius:9px;">
+        <b>Что делать инвестору?</b>
+        <ul style="margin:0.3em 0 0 1.0em;">
+            <li>Внедрить приоритетные AI-рекомендации для максимизации прибыли</li>
+            <li>Следить за ключевыми алертами и “точками риска”</li>
+            <li>Проводить ежеквартальный AI-стресс-тест стратегии</li>
+            <li>Регулярно использовать AI-мониторинг</li>
+        </ul>
     </div>
-    {% endif %}
+
+    <!-- Verdict -->
+    <div style="margin:0.5em 0 0 0; font-size:1.13em; color:#13725d;">
+        <b>AI-вердикт:</b> <span style="font-weight:600;">🌟 Высокая инвестиционная привлекательность</span>
+    </div>
+
+    <!-- Температура бизнеса -->
+    <div style="margin:0.8em 0 0 0; font-size:1.1em;">
+        <span style="padding:2px 8px; background:#eaffea; border-radius:8px;">
+            <b>🟢 Бизнес в зелёной зоне</b>
+        </span>
+    </div>
+
+    <!-- Цитата Advisory -->
+    <div style="margin:1em 0 0 0; color:#8098c8; font-size:1.00em;">
+        <i>"Технологии не заменяют человека, но усиливают его в 10 раз". — AI Advisory</i>
+    </div>
 
     {% if response_time %}
         <div style="color:#8195b8; font-size:1.04em; margin-top:10px;">
             Время обработки: <b>{{ response_time }}</b>
         </div>
     {% endif %}
+</div>
+{% endif %}
+
 </div>
 {% endif %}
 
