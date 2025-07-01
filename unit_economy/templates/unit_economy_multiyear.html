@@ -566,7 +566,7 @@
             <span class="ai-confidence">Уверенность: <b>{{ ai_analysis.confidence or "99.7%" }}</b></span>
             <span class="ai-tonality">
     Тональность: <b>
-        {% if net_profit_growth > 0 %}
+        {% if net_profit_growth is defined and net_profit_growth > 0 %}
             финансово устойчивая (чистая прибыль +{{ net_profit_growth }}% год к году)
         {% elif net_profit_growth < 0 %}
             требует оптимизации (снижение прибыли {{ net_profit_growth }}% год к году)
