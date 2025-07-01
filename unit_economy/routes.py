@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request, Form
+from fastapi import APIRouter, Request, Form 
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from pathlib import Path
@@ -130,17 +130,16 @@ METRICS_BLOCKS = {
         ("nq_main_op_profit", "Опер прибыль (осн смены уборщ)", COMMENTS_HORIZON.get("nq_main_op_profit", "")),
         ("nq_extra_op_profit", "Опер прибыль (доп смены уборщ)", COMMENTS_HORIZON.get("nq_extra_op_profit", "")),
     ],
-"fin": [
-    ("costs_block", "Постоянные расходы (ФОТ аренда доход склада)", COMMENTS_HORIZON.get("costs_block", "")),
-    ("total_revenue", "Итого выручка", COMMENTS_HORIZON.get("total_revenue", "")),
-    ("total_cost", "Итого расходы", COMMENTS_HORIZON.get("total_cost", "")),
-    ("total_op_profit", "Общая операционная прибыль", COMMENTS_HORIZON.get("total_op_profit", "")),
-    ("operational_profit", "Операционная прибыль", COMMENTS_HORIZON.get("operational_profit", "")),
-    ("tax", "Налог (15%)", "15% от операционной прибыли"),            # ADDED
-    ("vat", "НДС (5% при выручке >60 млн)", "5% при выручке свыше 60 млн"),  # ADDED
-    ("net_profit", "Чистая прибыль (после налога и НДС)", COMMENTS_HORIZON.get("net_profit", "")),
-]
-
+    "fin": [
+        ("costs_block", "Постоянные расходы (ФОТ аренда доход склада)", COMMENTS_HORIZON.get("costs_block", "")),
+        ("total_revenue", "Итого выручка", COMMENTS_HORIZON.get("total_revenue", "")),
+        ("total_cost", "Итого расходы", COMMENTS_HORIZON.get("total_cost", "")),
+        ("total_op_profit", "Общая операционная прибыль", COMMENTS_HORIZON.get("total_op_profit", "")),
+        ("operational_profit", "Операционная прибыль", COMMENTS_HORIZON.get("operational_profit", "")),
+        ("tax", "Налог (15%)", "15% от операционной прибыли"),
+        ("vat", "НДС (5% при выручке >60 млн)", "5% при выручке свыше 60 млн"),
+        ("net_profit", "Чистая прибыль (после налога и НДС)", COMMENTS_HORIZON.get("net_profit", "")),
+    ]
 }
 
 def get_total_per_metric(results_per_year: Dict[int, Dict[str, Any]], YEARS: List[int]) -> Dict[str, float]:
@@ -245,7 +244,7 @@ def calc_one_year(data: Dict[str, Any]) -> Dict[str, Any]:
     vat = total_revenue * 0.05 if total_revenue > 60_000_000 else 0   # <= исправлено тут!
     net_profit = operational_profit - tax - vat
 
-    # Инвесторы
+    # Инвесторы (дополнительно всегда неотрицательное int)
     investor1_share = int(max(net_profit * 0.5, 0))
     investor2_share = int(max(net_profit * 0.3, 0))
     investor3_share = int(max(net_profit * 0.1, 0))
@@ -294,7 +293,6 @@ def calc_one_year(data: Dict[str, Any]) -> Dict[str, Any]:
         "investor4_share": investor4_share,
         "audit": audit
     }
-
 
 
 def ai_financial_expert_analysis(years: List[int], results: Dict[int, Dict[str, Any]]) -> Dict[str, Any]:
