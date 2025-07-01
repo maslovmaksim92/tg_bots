@@ -795,7 +795,7 @@
             {% for year in YEARS %}<th>{{ year }}</th>{% endfor %}
             <th>Комментарий к расчету</th>
         </tr>
- {% for metric, label, comment in METRICS_BLOCKS['fin'] %}
+{% for metric, label, comment in METRICS_BLOCKS['fin'] %}
 <tr>
     <td>{{ label }}</td>
     {% for year in YEARS %}
@@ -823,6 +823,7 @@
     </td>
 </tr>
 {% endfor %}
+
 
         {% if results_per_year[YEARS[0]].npv is defined %}
         <tr>
