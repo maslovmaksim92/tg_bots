@@ -853,7 +853,7 @@
     <div class="card-section">
         <div class="stepper">
             <div class="step">5</div>
-            <div class="step-label">Возврат инвестиций: доли инвесторов</div>
+            <div class="step-label">Все суммы инвесторам указаны после уплаты НДФЛ по прогрессивной шкале</div>
         </div>
         <table class="investor-table">
             <thead>
@@ -866,15 +866,16 @@
                 </tr>
             </thead>
             <tbody>
-            {% for inv in investors_table %}
-                <tr>
-                    <td>{{ inv.year }}</td>
-                    <td>{{ inv.investor1_share | humanize_millions }}</td>
-                    <td>{{ inv.investor2_share | humanize_millions }}</td>
-                    <td>{{ inv.investor3_share | humanize_millions }}</td>
-                    <td>{{ inv.investor4_share | humanize_millions }}</td>
-                </tr>
-            {% endfor %}
+{% for inv in investors_table %}
+    <tr>
+        <td>{{ inv.year }}</td>
+        <td>{{ inv.investor1_net | humanize_millions }}</td>
+        <td>{{ inv.investor2_net | humanize_millions }}</td>
+        <td>{{ inv.investor3_net | humanize_millions }}</td>
+        <td>{{ inv.investor4_net | humanize_millions }}</td>
+    </tr>
+{% endfor %}
+
             </tbody>
         </table>
     </div>
