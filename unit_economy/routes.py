@@ -434,7 +434,6 @@ async def unit_economy_multiyear_result(request: Request):
                 audit_messages.append(f"{year}: ФОТ вырос более чем на 15% к прошлому году! Проверьте значения.")
         last_fot = form[year]["fot"]
 
-
     # === Новый корректный мульти-летний расчет НДС ===
     # 1. Получаем выручку по годам
     total_revenue_by_year = {year: calc_one_year(form[year])["total_revenue"] for year in YEARS}
@@ -446,22 +445,22 @@ async def unit_economy_multiyear_result(request: Request):
         for year in YEARS
     }
 
-investors_table = []
-cum_net = [0, 0, 0, 0]
-shares = [0.5, 0.3, 0.1, 0.1]
-for year in YEARS:
-    net_profit = results_per_year[year]["net_profit"]
-    row = {"year": year}
-    for idx, share in enumerate(shares):
-        gross = net_profit * share
-        ndfl = calc_ndfl_by_scale(gross)
-        net = gross - ndfl
-        row[f"investor{idx+1}_gross"] = int(gross)
-        row[f"investor{idx+1}_ndfl"] = int(ndfl)
-        row[f"investor{idx+1}_net"] = int(net)
-        cum_net[idx] += net
-        row[f"investor{idx+1}_cum"] = int(cum_net[idx])
-    investors_table.append(row)
+    investors_table = []
+    cum_net = [0, 0, 0, 0]
+    shares = [0.5, 0.3, 0.1, 0.1]
+    for year in YEARS:
+        net_profit = results_per_year[year]["net_profit"]
+        row = {"year": year}
+        for idx, share in enumerate(shares):
+            gross = net_profit * share
+            ndfl = calc_ndfl_by_scale(gross)
+            net = gross - ndfl
+            row[f"investor{idx+1}_gross"] = int(gross)
+            row[f"investor{idx+1}_ndfl"] = int(ndfl)
+            row[f"investor{idx+1}_net"] = int(net)
+            cum_net[idx] += net
+            row[f"investor{idx+1}_cum"] = int(cum_net[idx])
+        investors_table.append(row)
 
     profit_list = [results_per_year[year]["net_profit"] for year in YEARS]
     no_profit_growth = 0
@@ -502,6 +501,7 @@ for year in YEARS:
             "constant_expenses": {year: results_per_year[year]["constant_expenses"] for year in YEARS},
         }
     )
+
 
 
 # =========================
