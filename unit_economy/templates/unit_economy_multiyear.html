@@ -1005,7 +1005,13 @@
             <b>Top-3 AI SWOT-фактора:</b>
             <div style="margin-top:0.7em;">
                 <ul>
-                    {% for line in ai_analysis.split('\n') if loop.index0 < 3 %}
+                    {# 
+                        Исправление:
+                        Было: {% for line in ai_analysis.split('\n') if loop.index0 < 3 %}
+                        loop не определён в if части, приводит к ошибке.
+                        Решение — используем срез: [:3]
+                    #}
+                    {% for line in ai_analysis.split('\n')[:3] %}
                         <li>{{ line }}</li>
                     {% endfor %}
                 </ul>
@@ -1054,5 +1060,6 @@
 </div>
 </body>
 </html>
+
 
 
