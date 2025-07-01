@@ -99,7 +99,7 @@ COMMENTS_HORIZON = {
     "nq_extra_shifts": "Доп. смен неквалифицированных (общее количество смен за год)",
     "nq_extra_revenue": "Дополнительная выручка от смен неквалифицированных",
     "nq_extra_cost": "Себестоимость дополнительных смен неквалифицированных",
-    "costs_block": "Постоянные расходы (ФОТ аренда доход склада)",
+    "costs_block": "Постоянные расходы (ФОТ: директор, менеджер, бухгалтер, специалист по охране труда, юрист. Аренда офиса)",
     "total_revenue": "Итого выручка за год",
     "total_cost": "Итого расходы за год",
     "operational_profit": "Операционная прибыль за год",
@@ -138,7 +138,7 @@ METRICS_BLOCKS = {
         ("nq_extra_op_profit", "Опер прибыль (доп смены уборщ)", COMMENTS_HORIZON.get("nq_extra_op_profit", "")),
     ],
     "fin": [
-        ("costs_block", "Постоянные расходы (ФОТ аренда доход склада)", COMMENTS_HORIZON.get("costs_block", "")),
+        ("costs_block", "ФОТ: директор, менеджер, бухгалтер, специалист по охране труда, юрист. Аренда офиса", COMMENTS_HORIZON.get("costs_block", "")),
         ("total_revenue", "Итого выручка", COMMENTS_HORIZON.get("total_revenue", "")),
         ("total_cost", "Итого расходы", COMMENTS_HORIZON.get("total_cost", "")),
         ("total_op_profit", "Общая операционная прибыль", COMMENTS_HORIZON.get("total_op_profit", "")),
