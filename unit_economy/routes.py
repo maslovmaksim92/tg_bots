@@ -434,17 +434,17 @@ async def unit_economy_multiyear_result(request: Request):
                 audit_messages.append(f"{year}: ФОТ вырос более чем на 15% к прошлому году! Проверьте значения.")
         last_fot = form[year]["fot"]
 
-# === Новый корректный мульти-летний расчет НДС ===
-# 1. Получаем выручку по годам
-total_revenue_by_year = {year: calc_one_year(form[year])["total_revenue"] for year in YEARS}
-# 2. Корректно считаем НДС для каждого года
-vat_by_year = calc_vat_multiyear(YEARS, total_revenue_by_year)
-# 3. Итоговые результаты с НДС для каждого года
-results_per_year: Dict[int, Dict[str, Any]] = {
-    year: calc_one_year(form[year], vat_value=vat_by_year[year]) 
-    for year in YEARS
-}
 
+    # === Новый корректный мульти-летний расчет НДС ===
+    # 1. Получаем выручку по годам
+    total_revenue_by_year = {year: calc_one_year(form[year])["total_revenue"] for year in YEARS}
+    # 2. Корректно считаем НДС для каждого года
+    vat_by_year = calc_vat_multiyear(YEARS, total_revenue_by_year)
+    # 3. Итоговые результаты с НДС для каждого года
+    results_per_year: Dict[int, Dict[str, Any]] = {
+        year: calc_one_year(form[year], vat_value=vat_by_year[year]) 
+        for year in YEARS
+    }
 
     investors_table = []
     cum_inv1 = cum_inv2 = cum_inv3 = cum_inv4 = 0
@@ -507,6 +507,7 @@ results_per_year: Dict[int, Dict[str, Any]] = {
             "constant_expenses": {year: results_per_year[year]["constant_expenses"] for year in YEARS},
         }
     )
+
 
 # =========================
 # ROUTES: простой (1 год)
