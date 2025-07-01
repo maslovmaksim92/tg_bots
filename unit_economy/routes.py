@@ -446,28 +446,23 @@ async def unit_economy_multiyear_result(request: Request):
         for year in YEARS
     }
 
-    investors_table = []
-    cum_inv1 = cum_inv2 = cum_inv3 = cum_inv4 = 0
-    for year in YEARS:
-        inv1 = results_per_year[year]["investor1_share"]
-        inv2 = results_per_year[year]["investor2_share"]
-        inv3 = results_per_year[year]["investor3_share"]
-        inv4 = results_per_year[year]["investor4_share"]
-        cum_inv1 += inv1
-        cum_inv2 += inv2
-        cum_inv3 += inv3
-        cum_inv4 += inv4
-        investors_table.append({
-            "year": year,
-            "investor1_share": inv1,
-            "investor2_share": inv2,
-            "investor3_share": inv3,
-            "investor4_share": inv4,
-            "investor1_cum": cum_inv1,
-            "investor2_cum": cum_inv2,
-            "investor3_cum": cum_inv3,
-            "investor4_cum": cum_inv4,
-        })
+investors_table = []
+cum_net = [0, 0, 0, 0]
+shares = [0.5, 0.3, 0.1, 0.1]
+for year in YEARS:
+    net_profit = results_per_year[year]["net_profit"]
+    row = {"year": year}
+    for idx, share in enumerate(shares):
+        gross = net_profit * share
+        ndfl = calc_ndfl_by_scale(gross)
+        net = gross - ndfl
+        row[f"investor{idx+1}_gross"] = int(gross)
+        row[f"investor{idx+1}_ndfl"] = int(ndfl)
+        row[f"investor{idx+1}_net"] = int(net)
+        cum_net[idx] += net
+        row[f"investor{idx+1}_cum"] = int(cum_net[idx])
+    investors_table.append(row)
+
     profit_list = [results_per_year[year]["net_profit"] for year in YEARS]
     no_profit_growth = 0
     for i in range(1, len(profit_list)):
