@@ -346,16 +346,53 @@ def calc_one_year(data: Dict[str, Any], vat_value: float = None, prev_revenue: f
         "audit": audit
     }
 
-# Остальная логика (роуты и функции) не требует изменений — всё полностью совместимо!
 
-# =========================
-# END OF FILE
-# =========================
-
-
+def analyze_profit_drop(prev_year_data, curr_year_data):
+    reasons = []
+    # 1. Выручка
+    if curr_year_data["total_revenue"] < prev_year_data["total_revenue"]:
+        diff = prev_year_data["total_revenue"] - curr_year_data["total_revenue"]
+        percent = diff / (prev_year_data["total_revenue"] or 1) * 100
+        reasons.append(f"Выручка снизилась на {int(diff):,} ₽ ({percent:.1f}%) по сравнению с предыдущим годом.")
+    # 2. Себестоимость
+    if curr_year_data["total_cost"] > prev_year_data["total_cost"]:
+        diff = curr_year_data["total_cost"] - prev_year_data["total_cost"]
+        percent = diff / (prev_year_data["total_cost"] or 1) * 100
+        reasons.append(f"Общие расходы выросли на {int(diff):,} ₽ ({percent:.1f}%).")
+    # 3. Постоянные расходы
+    if curr_year_data["costs_block"] > prev_year_data["costs_block"]:
+        diff = curr_year_data["costs_block"] - prev_year_data["costs_block"]
+        percent = diff / (prev_year_data["costs_block"] or 1) * 100
+        reasons.append(f"Постоянные расходы увеличились на {int(diff):,} ₽ ({percent:.1f}%).")
+    # 4. Налог/НДС
+    if curr_year_data["tax"] > prev_year_data["tax"]:
+        reasons.append(f"Налог вырос на {int(curr_year_data['tax'] - prev_year_data['tax']):,} ₽.")
+    if curr_year_data["vat"] > prev_year_data["vat"]:
+        reasons.append(f"НДС вырос на {int(curr_year_data['vat'] - prev_year_data['vat']):,} ₽.")
+    # 5. Доп. смены
+    if curr_year_data["q_extra_shifts"] < prev_year_data["q_extra_shifts"]:
+        reasons.append("Сократилось количество дополнительных смен квалифицированных сотрудников.")
+    if curr_year_data["nq_extra_shifts"] < prev_year_data["nq_extra_shifts"]:
+        reasons.append("Сократилось количество дополнительных смен неквалифицированных сотрудников.")
+    if not reasons:
+        reasons.append("Нет явных причин, проверьте структуру выручки и расходов вручную.")
+    # Генерация простой рекомендации
+    recommendations = []
+    for r in reasons:
+        if "выручка снизилась" in r.lower():
+            recommendations.append("Рекомендуем провести аудит каналов продаж и рассмотреть варианты увеличения выручки.")
+        if "расходы" in r.lower() or "себестоимость" in r.lower():
+            recommendations.append("Рекомендуем пересмотреть структуру расходов и оптимизировать затраты.")
+        if "налог" in r.lower() or "ндс" in r.lower():
+            recommendations.append("Проверьте налоговую нагрузку и возможность налоговой оптимизации.")
+        if "дополнительных смен" in r.lower():
+            recommendations.append("Рассмотрите увеличение объёма доп. смен для роста дохода.")
+    # Дедупликация
+    recommendations = list(dict.fromkeys(recommendations))
+    return reasons, recommendations
 
 def ai_financial_expert_analysis(years: List[int], results: Dict[int, Dict[str, Any]]) -> Dict[str, Any]:
-    summary, alerts = [], []
+    summary, alerts, drop_causes, drop_recommendations = [], [], {}, {}
     profits = [results[y]["net_profit"] for y in years]
     prev_profit = profits[0]
     stagnation_years = 0
@@ -363,14 +400,18 @@ def ai_financial_expert_analysis(years: List[int], results: Dict[int, Dict[str, 
         net_profit = results[year]["net_profit"]
         if i > 0:
             if net_profit > prev_profit:
-                summary.append(f"{year}: чистая прибыль {net_profit} ₽ — рост")
+                summary.append(f"{year}: чистая прибыль {net_profit:,} ₽ — рост")
                 stagnation_years = 0
             elif net_profit == prev_profit:
-                summary.append(f"{year}: чистая прибыль {net_profit} ₽ — стагнация")
+                summary.append(f"{year}: чистая прибыль {net_profit:,} ₽ — стагнация")
                 stagnation_years += 1
             else:
-                summary.append(f"{year}: чистая прибыль {net_profit} ₽ — падение")
+                summary.append(f"{year}: чистая прибыль {net_profit:,} ₽ — падение")
                 stagnation_years += 1
+                # Анализ причины падения и рекомендации
+                reasons, recs = analyze_profit_drop(results[years[i-1]], results[year])
+                drop_causes[year] = reasons
+                drop_recommendations[year] = recs
         prev_profit = net_profit
         if net_profit < 0:
             alerts.append(f"Год {year}: убыток! Проверьте структуру расходов и выручки.")
@@ -378,12 +419,15 @@ def ai_financial_expert_analysis(years: List[int], results: Dict[int, Dict[str, 
             alerts.append(f"Год {year}: Прочие расходы превышают 7% выручки.")
         if stagnation_years > 1:
             alerts.append(f"Нет роста прибыли {stagnation_years+1} года подряд!")
-    conclusion = "AI-финансовая экспертиза: бизнес устойчив инвестиции окупятся менее чем за 3 года при текущих темпах. Рекомендуется ежегодная индексация ставок и контроль прочих расходов."
+    conclusion = "AI-финансовая экспертиза: бизнес устойчив, инвестиции окупятся менее чем за 3 года при текущих темпах. Рекомендуется ежегодная индексация ставок и контроль прочих расходов."
     return {
         "trend": summary,
         "expert_opinion": conclusion,
-        "alerts": alerts
+        "alerts": alerts,
+        "drop_causes": drop_causes,
+        "drop_recommendations": drop_recommendations
     }
+
 
 @router.get("/multiyear", response_class=HTMLResponse)
 async def unit_economy_multiyear_form(request: Request):
