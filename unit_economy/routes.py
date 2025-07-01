@@ -19,10 +19,12 @@ templates = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
 # =========================
 
 def format_ai_analysis(text: str) -> str:
+    """Форматирование для AI анализа (пример, расширяй под свои нужды)."""
     return re.sub(r"\n+", "<br>", text.strip())
 templates.env.filters['format_ai_analysis'] = format_ai_analysis
 
 def humanize_millions(value: Any) -> str:
+    """Округляет без запятых: 1544444 → 1.5 млн 9000 → 9000"""
     try:
         value = float(str(value).replace(",", "."))
     except Exception:
@@ -64,6 +66,7 @@ templates.env.filters['int_input'] = int_input
 # ===============
 
 def get_default_form() -> Dict[str, Any]:
+    """Default single-year form fields."""
     return {
         "q_count": 20, "q_price": 3800, "q_cost": 1924, "q_days": 247,
         "q_extra_shifts": 50, "q_extra_price": 4000, "q_extra_cost": 2500,
@@ -72,6 +75,7 @@ def get_default_form() -> Dict[str, Any]:
     }
 
 def detect_language(request: Request) -> str:
+    # Можно расширить по Accept-Language
     return "ru"
 
 COMMENTS = { ... }
@@ -131,6 +135,7 @@ METRICS_BLOCKS = {
         ("total_revenue", "Итого выручка", COMMENTS_HORIZON.get("total_revenue", "")),
         ("total_cost", "Итого расходы", COMMENTS_HORIZON.get("total_cost", "")),
         ("total_op_profit", "Общая операционная прибыль", COMMENTS_HORIZON.get("total_op_profit", "")),
+        ("operational_profit", "Операционная прибыль", COMMENTS_HORIZON.get("operational_profit", "")),
         ("tax", "Налог (15%)", "15% от операционной прибыли"),
         ("vat", "НДС (5% при выручке >60 млн)", "5% при выручке свыше 60 млн"),
         ("net_profit", "Чистая прибыль (после налога и НДС)", COMMENTS_HORIZON.get("net_profit", "")),
@@ -213,22 +218,32 @@ def calc_vat_by_month(total_revenue: float, prev_revenue: float, months: int = 1
     return 0
 
 def calc_one_year(data: Dict[str, Any], prev_revenue: float = 0) -> Dict[str, Any]:
-    # Основные смены
+    # Основные смены (квалифицированные)
     q_shifts = int(float(data.get("q_count", 0))) * int(float(data.get("q_days", 0)))
     q_revenue = q_shifts * float(data.get("q_price", 0))
     q_cost = q_shifts * float(data.get("q_cost", 0))
 
+    # Основные смены (неквалифицированные)
     nq_shifts = int(float(data.get("nq_count", 0))) * int(float(data.get("nq_days", 0)))
     nq_revenue = nq_shifts * float(data.get("nq_price", 0))
     nq_cost = nq_shifts * float(data.get("nq_cost", 0))
 
-    # Доп. смены
+    # Доп. смены (квалифицированные)
     q_extra_shifts = int(float(data.get("q_extra_shifts", 0)))
     q_extra_revenue = q_extra_shifts * float(data.get("q_extra_price", 0))
     q_extra_cost = q_extra_shifts * float(data.get("q_extra_cost", 0))
+    # Доп. смены (неквалифицированные)
     nq_extra_shifts = int(float(data.get("nq_extra_shifts", 0)))
     nq_extra_revenue = nq_extra_shifts * float(data.get("nq_extra_price", 0))
     nq_extra_cost = nq_extra_shifts * float(data.get("nq_extra_cost", 0))
+
+    # --- Итоги по категориям для прозрачности ---
+    q_total_revenue = q_revenue + q_extra_revenue
+    q_total_cost = q_cost + q_extra_cost
+    q_total_profit = (q_revenue - q_cost) + (q_extra_revenue - q_extra_cost)
+    nq_total_revenue = nq_revenue + nq_extra_revenue
+    nq_total_cost = nq_cost + nq_extra_cost
+    nq_total_profit = (nq_revenue - nq_cost) + (nq_extra_revenue - nq_extra_cost)
 
     # Постоянные расходы
     fot = float(data.get("fot", 0)) * 12000
@@ -236,21 +251,14 @@ def calc_one_year(data: Dict[str, Any], prev_revenue: float = 0) -> Dict[str, An
     warehouse_income = float(data.get("warehouse_income", 0)) * 12000
     costs_block = fot + office_rent - warehouse_income
 
-    # Прибыль по сменам
-    main_op_profit = q_revenue - q_cost
-    extra_op_profit = q_extra_revenue - q_extra_cost
-    nq_main_op_profit = nq_revenue - nq_cost
-    nq_extra_op_profit = nq_extra_revenue - nq_extra_cost
-    total_op_profit = main_op_profit + extra_op_profit + nq_main_op_profit + nq_extra_op_profit
-
     # Финансовые итоги
-    total_revenue = q_revenue + q_extra_revenue + nq_revenue + nq_extra_revenue
-    total_cost = q_cost + q_extra_cost + nq_cost + nq_extra_cost + costs_block
-    operational_profit = total_revenue - total_cost
+    total_revenue = q_total_revenue + nq_total_revenue
+    total_cost = q_total_cost + nq_total_cost + costs_block
+    profit_before_tax = total_revenue - total_cost
 
-    tax = operational_profit * 0.15 if operational_profit > 0 else 0
+    tax = profit_before_tax * 0.15 if profit_before_tax > 0 else 0
     vat = calc_vat_by_month(total_revenue, prev_revenue)
-    net_profit = operational_profit - tax - vat
+    net_profit = profit_before_tax - tax - vat
 
     investor1_share = int(max(net_profit * 0.5, 0))
     investor2_share = int(max(net_profit * 0.3, 0))
@@ -267,6 +275,7 @@ def calc_one_year(data: Dict[str, Any], prev_revenue: float = 0) -> Dict[str, An
 
     constant_expenses = {"fot": int(fot), "office_rent": int(office_rent)}
     return {
+        # Поля для таблиц категорий (и для итоговых строк)
         "q_shifts": int(q_shifts),
         "q_revenue": int(q_revenue),
         "q_cost": int(q_cost),
@@ -279,16 +288,24 @@ def calc_one_year(data: Dict[str, Any], prev_revenue: float = 0) -> Dict[str, An
         "nq_extra_shifts": int(nq_extra_shifts),
         "nq_extra_revenue": int(nq_extra_revenue),
         "nq_extra_cost": int(nq_extra_cost),
+        # Итоговые строки по категориям
+        "q_total_revenue": int(q_total_revenue),
+        "q_total_cost": int(q_total_cost),
+        "q_total_profit": int(q_total_profit),
+        "nq_total_revenue": int(nq_total_revenue),
+        "nq_total_cost": int(nq_total_cost),
+        "nq_total_profit": int(nq_total_profit),
+        # Общая фин. модель
         "costs_block": int(costs_block),
-        "main_op_profit": int(main_op_profit),
-        "extra_op_profit": int(extra_op_profit),
-        "nq_main_op_profit": int(nq_main_op_profit),
-        "nq_extra_op_profit": int(nq_extra_op_profit),
-        "total_op_profit": int(total_op_profit),
+        "main_op_profit": int(q_revenue - q_cost),
+        "extra_op_profit": int(q_extra_revenue - q_extra_cost),
+        "nq_main_op_profit": int(nq_revenue - nq_cost),
+        "nq_extra_op_profit": int(nq_extra_revenue - nq_extra_cost),
+        "total_op_profit": int(q_total_profit + nq_total_profit),
         "constant_expenses": constant_expenses,
         "total_revenue": int(total_revenue),
         "total_cost": int(total_cost),
-        "operational_profit": int(operational_profit),
+        "operational_profit": int(profit_before_tax),
         "tax": int(tax),
         "vat": int(vat),
         "net_profit": int(net_profit),
