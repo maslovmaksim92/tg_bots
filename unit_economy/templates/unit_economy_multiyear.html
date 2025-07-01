@@ -691,31 +691,8 @@
             <td class="comment-col">{{ comment }}</td>
         </tr>
         {% endfor %}
-<tr class="results-section-sep">
-    <td rowspan="3" style="vertical-align:middle;"><b>ИТОГО (швеи):</b></td>
-    {% for year in YEARS %}
-        <td>
-            <span style="color:#2954a2;font-weight:600;">В: {{ results_per_year[year].q_total_revenue | humanize_millions }}</span>
-        </td>
-    {% endfor %}
-    <td class="comment-col" rowspan="3" style="vertical-align:middle;">
-        <b>Сумма: выручка/расходы/прибыль за все смены швей (осн+доп)</b>
-    </td>
-</tr>
-<tr class="results-section-sep">
-    {% for year in YEARS %}
-        <td>
-            <span style="color:#2954a2;">Р: {{ results_per_year[year].q_total_cost | humanize_millions }}</span>
-        </td>
-    {% endfor %}
-</tr>
-<tr class="results-section-sep">
-    {% for year in YEARS %}
-        <td>
-            <span style="color:#208a4d;">П: {{ results_per_year[year].q_total_profit | humanize_millions }}</span>
-        </td>
-    {% endfor %}
-</tr>
+    </table>
+</div>
 
 <!-- Неквалифицированный персонал -->
 <div class="results-block">
@@ -746,34 +723,93 @@
             <td class="comment-col">{{ comment }}</td>
         </tr>
         {% endfor %}
-<tr class="results-section-sep">
-    <td rowspan="3" style="vertical-align:middle;"><b>ИТОГО (уборщицы):</b></td>
-    {% for year in YEARS %}
-        <td>
-            <span style="color:#2954a2;font-weight:600;">В: {{ results_per_year[year].nq_total_revenue | humanize_millions }}</span>
-        </td>
-    {% endfor %}
-    <td class="comment-col" rowspan="3" style="vertical-align:middle;">
-        <b>Сумма: выручка/расходы/прибыль за все смены уборщиц (осн+доп)</b>
-    </td>
-</tr>
-<tr class="results-section-sep">
-    {% for year in YEARS %}
-        <td>
-            <span style="color:#2954a2;">Р: {{ results_per_year[year].nq_total_cost | humanize_millions }}</span>
-        </td>
-    {% endfor %}
-</tr>
-<tr class="results-section-sep">
-    {% for year in YEARS %}
-        <td>
-            <span style="color:#208a4d;">П: {{ results_per_year[year].nq_total_profit | humanize_millions }}</span>
-        </td>
-    {% endfor %}
-</tr>
-
     </table>
 </div>
+
+<!-- Итоговые строки: швеи, уборщицы, общая прибыль -->
+<table class="results-table" style="margin-bottom: 32px;">
+    <tr style="background:#d9fbe0; font-weight:bold;">
+        <td><b>П (чистая прибыль, швеи)</b></td>
+        {% for year in YEARS %}
+            <td>
+                П: {{ results_per_year[year].q_total_profit | humanize_millions }}
+            </td>
+        {% endfor %}
+        <td class="comment-col">Чистая прибыль по всем сменам швей (основные+доп)</td>
+    </tr>
+    <tr style="background:#d9fbe0; font-weight:bold;">
+        <td><b>П (чистая прибыль, уборщицы)</b></td>
+        {% for year in YEARS %}
+            <td>
+                П: {{ results_per_year[year].nq_total_profit | humanize_millions }}
+            </td>
+        {% endfor %}
+        <td class="comment-col">Чистая прибыль по всем сменам уборщиц (основные+доп)</td>
+    </tr>
+    <tr style="background:#d9fbe0; font-weight:bold;">
+        <td><b>П (чистая прибыль, все смены)</b></td>
+        {% for year in YEARS %}
+            <td>
+                П: {{ results_per_year[year].total_op_profit | humanize_millions }}
+            </td>
+        {% endfor %}
+        <td class="comment-col">Суммарная операционная прибыль по всем сменам</td>
+    </tr>
+</table>
+<!-- Финансовые результаты -->
+<div class="results-block">
+    <div class="results-block-title">Финансовые результаты</div>
+    <table class="results-table">
+        <tr>
+            <th>Показатель</th>
+            {% for year in YEARS %}<th>{{ year }}</th>{% endfor %}
+            <th>Комментарий к расчету</th>
+        </tr>
+        {% for metric, label, comment in METRICS_BLOCKS['fin'] %}
+        <tr>
+            <td>{{ label }}</td>
+            {% for year in YEARS %}
+                <td>
+                    {% set val = results_per_year[year][metric] %}
+                    {{ val | humanize_millions }}
+                    {% if loop.index0 > 0 and results_per_year[YEARS[loop.index0]] and results_per_year[YEARS[loop.index0-1]] %}
+                        {% set prev = results_per_year[YEARS[loop.index0-1]][metric] %}
+                        {% if val > prev %}
+                            <span class="trend-up trend-icon" title="Рост по сравнению с прошлым годом">↑</span>
+                        {% elif val < prev %}
+                            <span class="trend-down trend-icon" title="Падение по сравнению с прошлым годом">↓</span>
+                        {% endif %}
+                    {% endif %}
+                </td>
+            {% endfor %}
+            <td class="comment-col">{{ comment }}</td>
+        </tr>
+        {% endfor %}
+        {% if results_per_year[YEARS[0]].npv is defined %}
+        <tr>
+            <td>NPV (чистая приведённая стоимость)</td>
+            {% for year in YEARS %}
+                <td>
+                    {{ results_per_year[year].npv | humanize_millions }}
+                </td>
+            {% endfor %}
+            <td class="comment-col">Инвестиционная привлекательность проекта</td>
+        </tr>
+        {% endif %}
+        {% if results_per_year[YEARS[0]].irr is defined %}
+        <tr>
+            <td>IRR (внутренняя норма доходности)</td>
+            {% for year in YEARS %}
+                <td>
+                    {{ (results_per_year[year].irr * 100) | round(2) }}%
+                </td>
+            {% endfor %}
+            <td class="comment-col">Доходность капитала (AI-оценка)</td>
+        </tr>
+        {% endif %}
+    </table>
+</div>
+
 
         <!-- Финансовые результаты -->
         <div class="results-block">
