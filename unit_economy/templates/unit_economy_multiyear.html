@@ -849,61 +849,6 @@
         {% endif %}
     </table>
 </div>
-
-
-        <!-- Финансовые результаты -->
-        <div class="results-block">
-            <div class="results-block-title">Финансовые результаты</div>
-            <table class="results-table">
-                <tr>
-                    <th>Показатель</th>
-                    {% for year in YEARS %}<th>{{ year }}</th>{% endfor %}
-                    <th>Комментарий к расчету</th>
-                </tr>
-                {% for metric, label, comment in METRICS_BLOCKS['fin'] %}
-                <tr>
-                    <td>{{ label }}</td>
-                    {% for year in YEARS %}
-                        <td>
-                            {% set val = results_per_year[year][metric] %}
-                            {{ val | humanize_millions }}
-                            {% if loop.index0 > 0 and results_per_year[YEARS[loop.index0]] and results_per_year[YEARS[loop.index0-1]] %}
-                                {% set prev = results_per_year[YEARS[loop.index0-1]][metric] %}
-                                {% if val > prev %}
-                                    <span class="trend-up trend-icon" title="Рост по сравнению с прошлым годом">↑</span>
-                                {% elif val < prev %}
-                                    <span class="trend-down trend-icon" title="Падение по сравнению с прошлым годом">↓</span>
-                                {% endif %}
-                            {% endif %}
-                        </td>
-                    {% endfor %}
-                    <td class="comment-col">{{ comment }}</td>
-                </tr>
-                {% endfor %}
-                {% if results_per_year[YEARS[0]].npv is defined %}
-                <tr>
-                    <td>NPV (чистая приведённая стоимость)</td>
-                    {% for year in YEARS %}
-                        <td>
-                            {{ results_per_year[year].npv | humanize_millions }}
-                        </td>
-                    {% endfor %}
-                    <td class="comment-col">Инвестиционная привлекательность проекта</td>
-                </tr>
-                {% endif %}
-                {% if results_per_year[YEARS[0]].irr is defined %}
-                <tr>
-                    <td>IRR (внутренняя норма доходности)</td>
-                    {% for year in YEARS %}
-                        <td>
-                            {{ (results_per_year[year].irr * 100) | round(2) }}%
-                        </td>
-                    {% endfor %}
-                    <td class="comment-col">Доходность капитала (AI-оценка)</td>
-                </tr>
-                {% endif %}
-            </table>
-        </div>
     </div>
     <div class="card-section">
         <div class="stepper">
