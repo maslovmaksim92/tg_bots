@@ -485,42 +485,39 @@ async def unit_economy_multiyear_result(request: Request):
                 audit_messages.append(f"{year}: ФОТ вырос более чем на 15% к прошлому году! Проверьте значения.")
         last_fot = form[year]["fot"]
 
-    # === Новый корректный мульти-летний расчет НДС ===
-    # 1. Получаем выручку по годам
+    # === ДАЛЬШЕ КОД БЕЗ ОТСТУПОВ относительно for year in YEARS: ===
     total_revenue_by_year = {year: calc_one_year(form[year])["total_revenue"] for year in YEARS}
-    # 2. Корректно считаем НДС для каждого года
     vat_by_year = calc_vat_multiyear(YEARS, total_revenue_by_year)
-    # 3. Итоговые результаты с НДС для каждого года
     results_per_year: Dict[int, Dict[str, Any]] = {
         year: calc_one_year(form[year], vat_value=vat_by_year[year]) 
         for year in YEARS
     }
-# === Расчёт динамики чистой прибыли (net_profit_growth) для AI-баннера
-profit_list = [results_per_year[year]["net_profit"] for year in YEARS]
-try:
-    net_profit_growth = round(
-        (profit_list[-1] - profit_list[0]) / abs(profit_list[0]) * 100, 1
-    ) if profit_list[0] != 0 else 0
-except Exception:
-    net_profit_growth = 0
 
-investors_table = []
-cum_net = [0, 0, 0, 0]
-shares = [0.5, 0.3, 0.1, 0.1]
-for year in YEARS:
-    net_profit = results_per_year[year]["net_profit"]
-    row = {"year": year}
-    for idx, share in enumerate(shares):
-        gross = net_profit * share
-        ndfl = calc_ndfl_by_scale(gross)
-        net = gross - ndfl
-        row[f"investor{idx+1}_gross"] = int(gross)
-        row[f"investor{idx+1}_ndfl"] = int(ndfl)
-        row[f"investor{idx+1}_net"] = int(net)
-        cum_net[idx] += net
-        row[f"investor{idx+1}_cum"] = int(cum_net[idx])
-    investors_table.append(row)
+    # === Расчёт динамики чистой прибыли (net_profit_growth) для AI-баннера
+    profit_list = [results_per_year[year]["net_profit"] for year in YEARS]
+    try:
+        net_profit_growth = round(
+            (profit_list[-1] - profit_list[0]) / abs(profit_list[0]) * 100, 1
+        ) if profit_list[0] != 0 else 0
+    except Exception:
+        net_profit_growth = 0
 
+    investors_table = []
+    cum_net = [0, 0, 0, 0]
+    shares = [0.5, 0.3, 0.1, 0.1]
+    for year in YEARS:
+        net_profit = results_per_year[year]["net_profit"]
+        row = {"year": year}
+        for idx, share in enumerate(shares):
+            gross = net_profit * share
+            ndfl = calc_ndfl_by_scale(gross)
+            net = gross - ndfl
+            row[f"investor{idx+1}_gross"] = int(gross)
+            row[f"investor{idx+1}_ndfl"] = int(ndfl)
+            row[f"investor{idx+1}_net"] = int(net)
+            cum_net[idx] += net
+            row[f"investor{idx+1}_cum"] = int(cum_net[idx])
+        investors_table.append(row)
 
     profit_list = [results_per_year[year]["net_profit"] for year in YEARS]
     no_profit_growth = 0
@@ -532,6 +529,7 @@ for year in YEARS:
         if no_profit_growth >= 2:
             audit_messages.append("Нет роста прибыли более двух лет подряд! Проверьте стратегию продаж и/или расходы.")
             break
+
     try:
         totals = get_total_per_metric(results_per_year, YEARS)
         ai_analysis = ai_analyze_unit_economy_multiyear(
@@ -544,6 +542,7 @@ for year in YEARS:
         ai_analysis = "⚠️ Ошибка AI-анализа. Проверьте параметры."
         fin_expert = {}
     response_time = time.perf_counter() - start_time
+    
     return templates.TemplateResponse(
         "unit_economy_multiyear.html",
         {
@@ -562,6 +561,7 @@ for year in YEARS:
             "net_profit_growth": net_profit_growth,
         }
     )
+
 
 
 
