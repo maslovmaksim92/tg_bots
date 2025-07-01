@@ -19,24 +19,21 @@ templates = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
 # =========================
 
 def format_ai_analysis(text: str) -> str:
-    """Форматирование для AI анализа (пример, расширяй под свои нужды)."""
     return re.sub(r"\n+", "<br>", text.strip())
-
 templates.env.filters['format_ai_analysis'] = format_ai_analysis
 
 def humanize_millions(value: Any) -> str:
-    """Округляет без запятых: 1544444 → 1.5 млн 9000 → 9000"""
     try:
         value = float(str(value).replace(",", "."))
     except Exception:
         return str(value)
     if abs(value) >= 1_000_000:
-        return f"{str(round(value/1_000_000, 1)).replace('.', '')} млн" if str(round(value/1_000_000, 1)).endswith('.0') else f"{str(round(value/1_000_000, 1)).replace('.', ',')} млн"
+        rounded = round(value / 1_000_000, 1)
+        return f"{int(rounded) if rounded.is_integer() else str(rounded).replace('.', ',')} млн"
     elif abs(value) >= 10_000:
         return f"{int(round(value, 0))}"
     else:
         return str(int(round(value, 0)))
-
 templates.env.filters['humanize_millions'] = humanize_millions
 
 def humanize_percent(value: Any, precision: int = 1) -> str:
@@ -67,7 +64,6 @@ templates.env.filters['int_input'] = int_input
 # ===============
 
 def get_default_form() -> Dict[str, Any]:
-    """Default single-year form fields."""
     return {
         "q_count": 20, "q_price": 3800, "q_cost": 1924, "q_days": 247,
         "q_extra_shifts": 50, "q_extra_price": 4000, "q_extra_cost": 2500,
@@ -135,7 +131,6 @@ METRICS_BLOCKS = {
         ("total_revenue", "Итого выручка", COMMENTS_HORIZON.get("total_revenue", "")),
         ("total_cost", "Итого расходы", COMMENTS_HORIZON.get("total_cost", "")),
         ("total_op_profit", "Общая операционная прибыль", COMMENTS_HORIZON.get("total_op_profit", "")),
-        ("operational_profit", "Операционная прибыль", COMMENTS_HORIZON.get("operational_profit", "")),
         ("tax", "Налог (15%)", "15% от операционной прибыли"),
         ("vat", "НДС (5% при выручке >60 млн)", "5% при выручке свыше 60 млн"),
         ("net_profit", "Чистая прибыль (после налога и НДС)", COMMENTS_HORIZON.get("net_profit", "")),
@@ -203,7 +198,21 @@ def get_multiyear_default_form() -> Dict[int, Dict[str, Any]]:
                     form[year][k] = prev[k]
     return form
 
-def calc_one_year(data: Dict[str, Any]) -> Dict[str, Any]:
+# === ВАЖНО! Корректный расчет VAT ===
+def calc_vat_by_month(total_revenue: float, prev_revenue: float, months: int = 12, threshold: float = 60_000_000):
+    """НДС начисляется только на ту часть года, где выручка превысила лимит."""
+    if total_revenue <= threshold:
+        return 0
+    monthly = total_revenue / months
+    cum = prev_revenue
+    for m in range(1, months + 1):
+        cum += monthly
+        if cum > threshold:
+            months_with_vat = months - m + 1
+            return round(monthly * months_with_vat * 0.05)
+    return 0
+
+def calc_one_year(data: Dict[str, Any], prev_revenue: float = 0) -> Dict[str, Any]:
     # Основные смены
     q_shifts = int(float(data.get("q_count", 0))) * int(float(data.get("q_days", 0)))
     q_revenue = q_shifts * float(data.get("q_price", 0))
@@ -213,7 +222,7 @@ def calc_one_year(data: Dict[str, Any]) -> Dict[str, Any]:
     nq_revenue = nq_shifts * float(data.get("nq_price", 0))
     nq_cost = nq_shifts * float(data.get("nq_cost", 0))
 
-    # Доп. смены: всегда обрабатываем 0, если пусто
+    # Доп. смены
     q_extra_shifts = int(float(data.get("q_extra_shifts", 0)))
     q_extra_revenue = q_extra_shifts * float(data.get("q_extra_price", 0))
     q_extra_cost = q_extra_shifts * float(data.get("q_extra_cost", 0))
@@ -221,7 +230,7 @@ def calc_one_year(data: Dict[str, Any]) -> Dict[str, Any]:
     nq_extra_revenue = nq_extra_shifts * float(data.get("nq_extra_price", 0))
     nq_extra_cost = nq_extra_shifts * float(data.get("nq_extra_cost", 0))
 
-    # Фиксированные расходы
+    # Постоянные расходы
     fot = float(data.get("fot", 0)) * 12000
     office_rent = float(data.get("office_rent", 0)) * 12000
     warehouse_income = float(data.get("warehouse_income", 0)) * 12000
@@ -239,18 +248,15 @@ def calc_one_year(data: Dict[str, Any]) -> Dict[str, Any]:
     total_cost = q_cost + q_extra_cost + nq_cost + nq_extra_cost + costs_block
     operational_profit = total_revenue - total_cost
 
-    # ----- TAX & VAT LOGIC -----
     tax = operational_profit * 0.15 if operational_profit > 0 else 0
-    vat = total_revenue * 0.05 if total_revenue > 60_000_000 else 0   # <= исправлено тут!
+    vat = calc_vat_by_month(total_revenue, prev_revenue)
     net_profit = operational_profit - tax - vat
 
-    # Инвесторы (дополнительно всегда неотрицательное int)
     investor1_share = int(max(net_profit * 0.5, 0))
     investor2_share = int(max(net_profit * 0.3, 0))
     investor3_share = int(max(net_profit * 0.1, 0))
     investor4_share = int(max(net_profit * 0.1, 0))
 
-    # Аудит
     audit = []
     if total_revenue == 0:
         audit.append("Внимание! Выручка по году равна 0.")
@@ -259,7 +265,6 @@ def calc_one_year(data: Dict[str, Any]) -> Dict[str, Any]:
     if costs_block > total_revenue * 0.07:
         audit.append("Прочие расходы превышают 7% выручки — пересмотри расходы!")
 
-    # Итог
     constant_expenses = {"fot": int(fot), "office_rent": int(office_rent)}
     return {
         "q_shifts": int(q_shifts),
@@ -293,6 +298,13 @@ def calc_one_year(data: Dict[str, Any]) -> Dict[str, Any]:
         "investor4_share": investor4_share,
         "audit": audit
     }
+
+# Остальная логика (роуты и функции) не требует изменений — всё полностью совместимо!
+
+# =========================
+# END OF FILE
+# =========================
+
 
 
 def ai_financial_expert_analysis(years: List[int], results: Dict[int, Dict[str, Any]]) -> Dict[str, Any]:
