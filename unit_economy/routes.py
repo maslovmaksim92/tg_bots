@@ -504,22 +504,23 @@ try:
 except Exception:
     net_profit_growth = 0
 
-    investors_table = []
-    cum_net = [0, 0, 0, 0]
-    shares = [0.5, 0.3, 0.1, 0.1]
-    for year in YEARS:
-        net_profit = results_per_year[year]["net_profit"]
-        row = {"year": year}
-        for idx, share in enumerate(shares):
-            gross = net_profit * share
-            ndfl = calc_ndfl_by_scale(gross)
-            net = gross - ndfl
-            row[f"investor{idx+1}_gross"] = int(gross)
-            row[f"investor{idx+1}_ndfl"] = int(ndfl)
-            row[f"investor{idx+1}_net"] = int(net)
-            cum_net[idx] += net
-            row[f"investor{idx+1}_cum"] = int(cum_net[idx])
-        investors_table.append(row)
+investors_table = []
+cum_net = [0, 0, 0, 0]
+shares = [0.5, 0.3, 0.1, 0.1]
+for year in YEARS:
+    net_profit = results_per_year[year]["net_profit"]
+    row = {"year": year}
+    for idx, share in enumerate(shares):
+        gross = net_profit * share
+        ndfl = calc_ndfl_by_scale(gross)
+        net = gross - ndfl
+        row[f"investor{idx+1}_gross"] = int(gross)
+        row[f"investor{idx+1}_ndfl"] = int(ndfl)
+        row[f"investor{idx+1}_net"] = int(net)
+        cum_net[idx] += net
+        row[f"investor{idx+1}_cum"] = int(cum_net[idx])
+    investors_table.append(row)
+
 
     profit_list = [results_per_year[year]["net_profit"] for year in YEARS]
     no_profit_growth = 0
