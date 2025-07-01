@@ -495,6 +495,14 @@ async def unit_economy_multiyear_result(request: Request):
         year: calc_one_year(form[year], vat_value=vat_by_year[year]) 
         for year in YEARS
     }
+# === Расчёт динамики чистой прибыли (net_profit_growth) для AI-баннера
+profit_list = [results_per_year[year]["net_profit"] for year in YEARS]
+try:
+    net_profit_growth = round(
+        (profit_list[-1] - profit_list[0]) / abs(profit_list[0]) * 100, 1
+    ) if profit_list[0] != 0 else 0
+except Exception:
+    net_profit_growth = 0
 
     investors_table = []
     cum_net = [0, 0, 0, 0]
@@ -550,6 +558,7 @@ async def unit_economy_multiyear_result(request: Request):
             "response_time": f"{response_time:.3f} сек",
             "lang": lang,
             "constant_expenses": {year: results_per_year[year]["constant_expenses"] for year in YEARS},
+            "net_profit_growth": net_profit_growth,
         }
     )
 
